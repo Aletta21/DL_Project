@@ -15,6 +15,7 @@ try:
 except ImportError as exc:  # pragma: no cover
     raise SystemExit("scanpy is required. Install it via `pip install scanpy`.") from exc
 
+from config import DEFAULT_GENE_H5AD, DEFAULT_ISOFORM_H5AD
 from data_utils import (
     aggregate_by_gene,
     align_anndata,
@@ -34,12 +35,12 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Train FNN to map genes -> isoforms.")
     parser.add_argument(
         "--gene-h5ad",
-        default="/work3/s193518/scIsoPred/data/bulk_processed_genes.h5ad",
+        default=DEFAULT_GENE_H5AD,
         help="Path to gene-level AnnData file.",
     )
     parser.add_argument(
         "--isoform-h5ad",
-        default="/work3/s193518/scIsoPred/data/bulk_processed_transcripts.h5ad",
+        default=DEFAULT_ISOFORM_H5AD,
         help="Path to isoform-level AnnData file.",
     )
     parser.add_argument("--train-n", type=int, default=1000, help="Number of samples for training split.")

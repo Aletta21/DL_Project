@@ -1,14 +1,18 @@
 from collections import defaultdict
-import scanpy as sc
+
+import anndata as ad
 import numpy as np
 import pandas as pd
+import scanpy as sc
 import torch
-import anndata as ad
 import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
-#This code is jist to test whether there are isoforms mapping to multiple genes in the bulk data
-gene_h5ad = "/work3/s193518/scIsoPred/data/bulk_processed_genes.h5ad"
-isoform_h5ad = "/work3/s193518/scIsoPred/data/bulk_processed_transcripts.h5ad"
+
+from config import DEFAULT_GENE_H5AD, DEFAULT_ISOFORM_H5AD
+
+# This code is just to test whether there are isoforms mapping to multiple genes in the bulk data
+gene_h5ad = DEFAULT_GENE_H5AD
+isoform_h5ad = DEFAULT_ISOFORM_H5AD
 print("Loading AnnData files...")
 bulk_genes = ad.read_h5ad(gene_h5ad)          #Load gene-level AnnData file    
 bulk_transcripts = ad.read_h5ad(isoform_h5ad)          #Load isoform-level AnnData file
