@@ -1,0 +1,22 @@
+# Python cache / env
+__pycache__/
+*.pyc
+.env
+.venv/
+env/
+
+# Jupyter + checkpoints
+.ipynb_checkpoints/
+
+# Data / models (customize if needed)
+data/
+*.h5
+*.pt
+*.pkl
+*.npz
+*.zip
+*.tar
+*.gz
+
+# Other
+.DS_Store
