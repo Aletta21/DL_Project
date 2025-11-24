@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import argparse
-import json
 from pathlib import Path
+from typing import Dict, List, Tuple
 
 import numpy as np
 import torch
 import torch.nn as nn
+from torch.utils.data import DataLoader
 
 try:
     import scanpy as sc
@@ -16,7 +17,10 @@ except ImportError as exc:  # pragma: no cover
     raise SystemExit("scanpy is required. Install it via `pip install scanpy`.") from exc
 
 from config import DEFAULT_GENE_H5AD, DEFAULT_ISOFORM_H5AD
-from data_utils import (
+from data import (
+    GeneIsoformDataLoaders,
+    make_loader,
+    train_val_test_split,
     aggregate_by_gene,
     align_anndata,
     build_transcript_gene_index,
@@ -25,10 +29,7 @@ from data_utils import (
     prepare_targets,
     summarise_gene_isoforms,
 )
-from dataloaders import GeneIsoformDataLoaders, make_loader, train_val_test_split
-from metrics import presence_accuracy
 from models import IsoformPredictor
-from trainer import evaluate_loss, inference, train_model
 
 
 def parse_args():
@@ -86,6 +87,86 @@ def build_dataloaders(
     val_loader = make_loader(val_pair, batch_size, shuffle=False)
     test_loader = make_loader(test_pair, batch_size, shuffle=False)
     return GeneIsoformDataLoaders(train_loader, train_eval_loader, val_loader, test_loader)
+
+
+def presence_accuracy(
+    pred_counts: np.ndarray, true_counts: np.ndarray, threshold: float = 0.5
+) -> float:
+    """Binary accuracy on isoform presence (count > threshold)."""
+    pred_presence = pred_counts > threshold
+    true_presence = true_counts > threshold
+    return float((pred_presence == true_presence).mean())
+
+
+def train_model(
+    model: nn.Module,
+    train_loader: DataLoader,
+    val_loader: DataLoader,
+    device: torch.device,
+    epochs: int,
+    lr: float,
+    weight_decay: float,
+) -> Dict[str, List[float]]:
+    """Standard MSE training loop with best-checkpoint tracking in memory."""
+    criterion = nn.MSELoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+    history = {"train": [], "val": []}
+    best_state = None
+    best_val = float("inf")
+
+    for epoch in range(1, epochs + 1):
+        model.train()
+        train_loss = 0.0
+        for xb, yb in train_loader:
+            xb = xb.to(device)
+            yb = yb.to(device)
+            optimizer.zero_grad()
+            preds = model(xb)
+            loss = criterion(preds, yb)
+            loss.backward()
+            optimizer.step()
+            train_loss += loss.item() * xb.size(0)
+        train_loss /= len(train_loader.dataset)
+
+        val_loss = evaluate_loss(model, val_loader, device, criterion)
+
+        history["train"].append(train_loss)
+        history["val"].append(val_loss)
+        print(f"Epoch {epoch:03d} | train {train_loss:.4f} | val {val_loss:.4f}")
+
+        if val_loss < best_val:
+            best_val = val_loss
+            best_state = {k: v.cpu().clone() for k, v in model.state_dict().items()}
+
+    if best_state is not None:
+        model.load_state_dict(best_state)
+    return history
+
+
+def evaluate_loss(model, loader, device, criterion=None) -> float:
+    criterion = criterion or nn.MSELoss()
+    model.eval()
+    total = 0.0
+    with torch.no_grad():
+        for xb, yb in loader:
+            xb = xb.to(device)
+            yb = yb.to(device)
+            preds = model(xb)
+            loss = criterion(preds, yb)
+            total += loss.item() * xb.size(0)
+    return total / len(loader.dataset)
+
+
+def inference(model, loader, device) -> Tuple[np.ndarray, np.ndarray]:
+    model.eval()
+    preds, targets = [], []
+    with torch.no_grad():
+        for xb, yb in loader:
+            xb = xb.to(device)
+            pred = model(xb).cpu().numpy()
+            preds.append(pred)
+            targets.append(yb.numpy())
+    return np.vstack(preds), np.vstack(targets)
 
 
 def main():
@@ -174,24 +255,7 @@ def main():
     print("\nTop genes by predicted isoform abundance:")
     print(isoform_df.head(10).to_string(index=False))
 
-    args.save_dir.mkdir(parents=True, exist_ok=True)
-    ckpt_path = args.save_dir / "isoform_predictor.pt"
-    torch.save({"state_dict": model.state_dict(), "config": vars(args)}, ckpt_path)
-    with (args.save_dir / "training_history.json").open("w") as f:
-        json.dump(
-            {
-                "loss_history": history,
-                "metrics": {
-                    split: {"mse": m["mse"], "accuracy": m["accuracy"]}
-                    for split, m in split_metrics.items()
-                },
-                "gene_mse": gene_mse,
-            },
-            f,
-            indent=2,
-        )
-    isoform_df.to_csv(args.save_dir / "gene_isoform_summary.csv", index=False)
-    print(f"\nArtifacts saved to: {args.save_dir.resolve()}")
+    print("\nSkipping artifact saving to avoid large files.")
 
 
 if __name__ == "__main__":
