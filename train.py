@@ -10,6 +10,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
+import matplotlib.pyplot as plt
 
 try:
     import scanpy as sc
@@ -21,12 +22,14 @@ from data import (
     GeneIsoformDataLoaders,
     make_loader,
     train_val_test_split,
-    aggregate_by_gene,
     align_anndata,
     build_transcript_gene_index,
     densify,
+    filter_silent_genes_isoforms,
+    isoform_correlations,
     normalize_inputs,
     prepare_targets,
+    summarise_isoforms,
     summarise_gene_isoforms,
 )
 from models import IsoformPredictor
@@ -44,16 +47,17 @@ def parse_args():
         default=DEFAULT_ISOFORM_H5AD,
         help="Path to isoform-level AnnData file.",
     )
-    parser.add_argument("--train-n", type=int, default=1000, help="Number of samples for training split.")
-    parser.add_argument("--val-n", type=int, default=700, help="Number of samples for validation split.")
-    parser.add_argument("--test-n", type=int, default=300, help="Number of samples for test split.")
-    parser.add_argument("--epochs", type=int, default=50)
+    parser.add_argument("--train-n", type=int, default=5000, help="Number of samples for training split.")
+    parser.add_argument("--val-n", type=int, default=3500, help="Number of samples for validation split.")
+    parser.add_argument("--test-n", type=int, default=1500, help="Number of samples for test split.")
+    parser.add_argument("--epochs", type=int, default=100)
     parser.add_argument("--batch-size", type=int, default=64)
-    parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--lr", type=float, default=2e-4)
     parser.add_argument("--weight-decay", type=float, default=1e-5)
     parser.add_argument("--dropout", type=float, default=0.2)
     parser.add_argument("--hidden1", type=int, default=1024)
     parser.add_argument("--hidden2", type=int, default=512)
+    parser.add_argument("--hidden3", type=int, default=256)
     parser.add_argument(
         "--save-dir",
         type=Path,
@@ -106,13 +110,23 @@ def train_model(
     epochs: int,
     lr: float,
     weight_decay: float,
+    patience: int = 10,
 ) -> Dict[str, List[float]]:
-    """Standard MSE training loop with best-checkpoint tracking in memory."""
-    criterion = nn.MSELoss()
+    """Masked-MSE training loop with best-checkpoint tracking in memory."""
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
     history = {"train": [], "val": []}
     best_state = None
     best_val = float("inf")
+    no_improve = 0
+
+    def masked_mse(preds: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+        # Ignore targets that are zero so silent isoforms/genes do not drive the loss.
+        mask = (targets > 0).float()
+        denom = mask.sum()
+        if denom == 0:
+            return torch.tensor(0.0, device=preds.device)
+        diff = (preds - targets) * mask
+        return (diff * diff).sum() / denom
 
     for epoch in range(1, epochs + 1):
         model.train()
@@ -122,13 +136,13 @@ def train_model(
             yb = yb.to(device)
             optimizer.zero_grad()
             preds = model(xb)
-            loss = criterion(preds, yb)
+            loss = masked_mse(preds, yb)
             loss.backward()
             optimizer.step()
             train_loss += loss.item() * xb.size(0)
         train_loss /= len(train_loader.dataset)
 
-        val_loss = evaluate_loss(model, val_loader, device, criterion)
+        val_loss = evaluate_loss(model, val_loader, device)
 
         history["train"].append(train_loss)
         history["val"].append(val_loss)
@@ -137,6 +151,13 @@ def train_model(
         if val_loss < best_val:
             best_val = val_loss
             best_state = {k: v.cpu().clone() for k, v in model.state_dict().items()}
+            no_improve = 0
+        else:
+            no_improve += 1
+
+        if no_improve >= patience:
+            print(f"No val improvement for {patience} epochs, stopping early at epoch {epoch}.")
+            break
 
     if best_state is not None:
         model.load_state_dict(best_state)
@@ -144,7 +165,14 @@ def train_model(
 
 
 def evaluate_loss(model, loader, device, criterion=None) -> float:
-    criterion = criterion or nn.MSELoss()
+    def masked_mse(preds: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+        mask = (targets > 0).float()
+        denom = mask.sum()
+        if denom == 0:
+            return torch.tensor(0.0, device=preds.device)
+        diff = (preds - targets) * mask
+        return (diff * diff).sum() / denom
+
     model.eval()
     total = 0.0
     with torch.no_grad():
@@ -152,7 +180,7 @@ def evaluate_loss(model, loader, device, criterion=None) -> float:
             xb = xb.to(device)
             yb = yb.to(device)
             preds = model(xb)
-            loss = criterion(preds, yb)
+            loss = masked_mse(preds, yb)
             total += loss.item() * xb.size(0)
     return total / len(loader.dataset)
 
@@ -180,11 +208,29 @@ def main():
 
     gene_to_transcripts = bulk_genes.uns.get("gene_to_transcripts") or {}
 
-    X = normalize_inputs(densify(bulk_genes))
-    Y = prepare_targets(densify(bulk_transcripts))
+    X_raw = densify(bulk_genes)
+    Y_raw = densify(bulk_transcripts)
+    (
+        X_raw,
+        Y_raw,
+        gene_names,
+        transcript_names,
+        gene_to_transcripts,
+    ) = filter_silent_genes_isoforms(
+        X_raw,
+        Y_raw,
+        bulk_genes.var_names.to_numpy(),
+        bulk_transcripts.var_names.to_numpy(),
+        gene_to_transcripts,
+    )
+    print(
+        f"Filtered zero-expression features: genes kept {len(gene_names)}/{bulk_genes.var_names.size}, "
+        f"isoforms kept {len(transcript_names)}/{bulk_transcripts.var_names.size}"
+    )
 
-    gene_names = bulk_genes.var_names.to_numpy()
-    transcript_names = bulk_transcripts.var_names.to_numpy()
+    X = normalize_inputs(X_raw)
+    Y = prepare_targets(Y_raw)
+
     transcript_gene_idx, _ = build_transcript_gene_index(
         gene_to_transcripts, gene_names, transcript_names
     )
@@ -202,7 +248,7 @@ def main():
     model = IsoformPredictor(
         n_inputs=X.shape[1],
         n_outputs=Y.shape[1],
-        hidden_sizes=(args.hidden1, args.hidden2),
+        hidden_sizes=(args.hidden1, args.hidden2, args.hidden3),
         dropout=args.dropout,
     ).to(device)
 
@@ -214,6 +260,7 @@ def main():
         epochs=args.epochs,
         lr=args.lr,
         weight_decay=args.weight_decay,
+        patience=20,
     )
 
     criterion = nn.MSELoss()
@@ -239,10 +286,36 @@ def main():
 
     test_preds_counts = split_metrics["test"]["pred_counts"]
     test_true_counts = split_metrics["test"]["true_counts"]
-    gene_pred_counts = aggregate_by_gene(test_preds_counts, transcript_gene_idx, len(gene_names))
-    gene_true_counts = aggregate_by_gene(test_true_counts, transcript_gene_idx, len(gene_names))
-    gene_mse = float(np.mean((gene_pred_counts - gene_true_counts) ** 2))
-    print(f"Gene-level MSE (counts): {gene_mse:.4f}")
+    # Isoform-wise correlation analysis (test split)
+    iso_corr = isoform_correlations(test_preds_counts, test_true_counts)
+    valid_corr = iso_corr[~np.isnan(iso_corr)]
+    if valid_corr.size == 0:
+        print("Isoform correlation: no isoforms with variance; skipping boxplot.")
+    else:
+        corr_mean = float(valid_corr.mean())
+        print(f"Isoform correlation: mean Pearson {corr_mean:.4f} over {valid_corr.size}/{iso_corr.size} isoforms")
+        args.save_dir.mkdir(parents=True, exist_ok=True)
+        corr_plot_path = args.save_dir / "isoform_correlation_boxplot.png"
+        plt.figure(figsize=(6, 4))
+        plt.boxplot(valid_corr, vert=True, patch_artist=True)
+        plt.ylabel("Pearson correlation")
+        plt.title("Isoform prediction correlation (test)")
+        plt.tight_layout()
+        plt.savefig(corr_plot_path, dpi=150)
+        plt.close()
+        print(f"Saved isoform correlation boxplot to {corr_plot_path}")
+
+    # Isoform ranking by predicted abundance (with correlation if available)
+    isoform_ranking = summarise_isoforms(
+        test_preds_counts,
+        test_true_counts,
+        transcript_gene_idx,
+        gene_names,
+        transcript_names,
+        correlations=iso_corr,
+    )
+    print("\nTop isoforms by predicted abundance (test):")
+    print(isoform_ranking.head(15).to_string(index=False))
 
     isoform_df = summarise_gene_isoforms(
         test_preds_counts,

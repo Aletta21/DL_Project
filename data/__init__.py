@@ -5,8 +5,11 @@ from .preprocess import (
     align_anndata,
     build_transcript_gene_index,
     densify,
+    filter_silent_genes_isoforms,
+    isoform_correlations,
     normalize_inputs,
     prepare_targets,
+    summarise_isoforms,
     summarise_gene_isoforms,
 )
 from .loaders import (
@@ -21,8 +24,11 @@ __all__ = [
     "aggregate_by_gene",
     "build_transcript_gene_index",
     "densify",
+    "filter_silent_genes_isoforms",
+    "isoform_correlations",
     "normalize_inputs",
     "prepare_targets",
+    "summarise_isoforms",
     "summarise_gene_isoforms",
     "GeneIsoformDataLoaders",
     "GeneIsoformDataset",

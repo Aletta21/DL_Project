@@ -37,6 +37,56 @@ def prepare_targets(Y: np.ndarray) -> np.ndarray:
     return np.log1p(Y)
 
 
+def filter_silent_genes_isoforms(
+    X_genes: np.ndarray,
+    Y_isoforms: np.ndarray,
+    gene_names: Sequence[str],
+    transcript_names: Sequence[str],
+    gene_to_transcripts: Dict[str, Sequence[str]] | None = None,
+):
+    """
+    Remove genes with zero expression and isoforms with zero observations or missing genes.
+
+    Returns filtered X, Y, gene names, transcript names, and an updated gene->transcripts mapping
+    containing only kept entries.
+    """
+    gene_to_transcripts = gene_to_transcripts or {}
+    gene_names = np.asarray(gene_names)
+    transcript_names = np.asarray(transcript_names)
+
+    gene_mask = X_genes.sum(axis=0) > 0
+    kept_genes = gene_names[gene_mask]
+    kept_gene_set = set(kept_genes)
+
+    transcript_to_gene = {}
+    for gene, transcripts in gene_to_transcripts.items():
+        for tr in transcripts:
+            transcript_to_gene[tr] = gene
+
+    isoform_mask = np.zeros_like(transcript_names, dtype=bool)
+    for idx, tr in enumerate(transcript_names):
+        has_counts = Y_isoforms[:, idx].sum() > 0
+        parent_gene = transcript_to_gene.get(tr)
+        isoform_mask[idx] = bool(has_counts and parent_gene in kept_gene_set)
+
+    filtered_transcripts = transcript_names[isoform_mask]
+    filtered_gene_to_transcripts: Dict[str, List[str]] = {}
+    filtered_transcript_set = set(filtered_transcripts)
+    for gene in kept_genes:
+        gene_transcripts = gene_to_transcripts.get(gene, [])
+        kept_trs = [tr for tr in gene_transcripts if tr in filtered_transcript_set]
+        if kept_trs:
+            filtered_gene_to_transcripts[gene] = kept_trs
+
+    return (
+        X_genes[:, gene_mask],
+        Y_isoforms[:, isoform_mask],
+        kept_genes,
+        filtered_transcripts,
+        filtered_gene_to_transcripts,
+    )
+
+
 def build_transcript_gene_index(
     gene_to_transcripts: Dict[str, Sequence[str]],
     gene_names: Sequence[str],
@@ -107,3 +157,60 @@ def summarise_gene_isoforms(
             }
         )
     return pd.DataFrame(rows).sort_values("avg_pred_total", ascending=False)
+
+
+def isoform_correlations(pred_counts: np.ndarray, true_counts: np.ndarray) -> np.ndarray:
+    """
+    Compute Pearson correlation per isoform across samples.
+
+    Returns an array of shape (n_isoforms,) with NaN where variance is zero
+    (pred or true) so that downstream stats can ignore those entries.
+    """
+    n_isoforms = pred_counts.shape[1]
+    corrs = np.full(n_isoforms, np.nan, dtype=np.float32)
+    for i in range(n_isoforms):
+        x = pred_counts[:, i]
+        y = true_counts[:, i]
+        if x.std() == 0 or y.std() == 0:
+            continue
+        corrs[i] = float(np.corrcoef(x, y)[0, 1])
+    return corrs
+
+
+def summarise_isoforms(
+    pred_counts: np.ndarray,
+    true_counts: np.ndarray,
+    transcript_gene_idx: np.ndarray,
+    gene_names: Sequence[str],
+    transcript_names: Sequence[str],
+    correlations: np.ndarray | None = None,
+):
+    """Return a dataframe with per-isoform averages, ranks, and optional correlation."""
+    import pandas as pd
+
+    gene_names = np.asarray(gene_names)
+    avg_pred = pred_counts.mean(axis=0)
+    avg_true = true_counts.mean(axis=0)
+    # Compute descending ranks (1 = highest)
+    rank_pred = np.empty_like(avg_pred, dtype=np.int32)
+    rank_true = np.empty_like(avg_true, dtype=np.int32)
+    # argsort on negative values yields descending order
+    rank_pred[np.argsort(-avg_pred)] = np.arange(1, len(avg_pred) + 1, dtype=np.int32)
+    rank_true[np.argsort(-avg_true)] = np.arange(1, len(avg_true) + 1, dtype=np.int32)
+
+    rows = []
+    for iso_idx, iso_name in enumerate(transcript_names):
+        gene_idx = transcript_gene_idx[iso_idx]
+        gene_name = gene_names[gene_idx] if gene_idx >= 0 and gene_idx < len(gene_names) else "unknown"
+        row = {
+            "isoform": iso_name,
+            "gene": gene_name,
+            "avg_pred": float(avg_pred[iso_idx]),
+            "avg_true": float(avg_true[iso_idx]),
+            "rank_pred": int(rank_pred[iso_idx]),
+            "rank_true": int(rank_true[iso_idx]),
+        }
+        if correlations is not None and iso_idx < len(correlations):
+            row["correlation"] = float(correlations[iso_idx]) if not np.isnan(correlations[iso_idx]) else np.nan
+        rows.append(row)
+    return pd.DataFrame(rows).sort_values("avg_pred", ascending=False)
