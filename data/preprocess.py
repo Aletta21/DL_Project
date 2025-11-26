@@ -15,6 +15,19 @@ def densify(adata) -> np.ndarray:
     return np.asarray(matrix, dtype=np.float32)
 
 
+def counts_to_proportions(matrix: np.ndarray, axis: int = 1, eps: float = 1e-8) -> np.ndarray:
+    """
+    Convert counts to per-row proportions (summing to 1 along the chosen axis).
+
+    If a row/column sum is zero, it is replaced with 1 to avoid division by zero,
+    yielding all-zero proportions for that slice.
+    """
+    matrix = matrix.astype(np.float32, copy=False)
+    sums = matrix.sum(axis=axis, keepdims=True)
+    safe_sums = np.where(sums > 0, sums, 1.0)
+    return matrix / safe_sums
+
+
 def align_anndata(genes, transcripts):
     """Ensure gene/isoform AnnData objects share the same obs order."""
     if np.array_equal(genes.obs_names, transcripts.obs_names):
