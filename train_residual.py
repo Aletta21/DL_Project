@@ -12,6 +12,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 
+
 try:
     import scanpy as sc
 except ImportError as exc:  # pragma: no cover
@@ -33,8 +34,9 @@ from data import (
     summarise_isoforms,
     summarise_gene_isoforms,
 )
-from models import IsoformPredictor
-
+#from models import IsoformPredictor
+#from models import ResidualIsoformPredictor
+from models import TransformerIsoformPredictor
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Train FNN to map genes -> isoforms.")
@@ -48,17 +50,18 @@ def parse_args():
         default=DEFAULT_ISOFORM_H5AD,
         help="Path to isoform-level AnnData file.",
     )
-    parser.add_argument("--train-n", type=int, default=5000, help="Number of samples for training split.")
-    parser.add_argument("--val-n", type=int, default=3500, help="Number of samples for validation split.")
-    parser.add_argument("--test-n", type=int, default=1500, help="Number of samples for test split.")
+    parser.add_argument("--train-n", type=int, default=1000, help="Number of samples for training split.")
+    parser.add_argument("--val-n", type=int, default=700, help="Number of samples for validation split.")
+    parser.add_argument("--test-n", type=int, default=300, help="Number of samples for test split.")
     parser.add_argument("--epochs", type=int, default=100)
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--lr", type=float, default=2e-4)
     parser.add_argument("--weight-decay", type=float, default=1e-5)
     parser.add_argument("--dropout", type=float, default=0.2)
-    parser.add_argument("--hidden1", type=int, default=1024)
-    parser.add_argument("--hidden2", type=int, default=512)
-    parser.add_argument("--hidden3", type=int, default=256)
+    parser.add_argument("--hidden1", type=int, default=1536)
+    parser.add_argument("--hidden2", type=int, default=1024)
+    parser.add_argument("--hidden3", type=int, default=1024)
+    parser.add_argument("--hidden4", type=int, default=512)
     parser.add_argument(
         "--save-dir",
         type=Path,
@@ -246,11 +249,26 @@ def main():
     )
 
     device = torch.device("cpu" if args.cpu or not torch.cuda.is_available() else "cuda")
-    model = IsoformPredictor(
-        n_inputs=X.shape[1],
-        n_outputs=Y.shape[1],
-        hidden_sizes=(args.hidden1, args.hidden2, args.hidden3),
-        dropout=args.dropout,
+    #model = IsoformPredictor(
+    #    n_inputs=X.shape[1],
+    #    n_outputs=Y.shape[1],
+    #    hidden_sizes=(args.hidden1, args.hidden2, args.hidden3),
+    #    dropout=args.dropout,
+    #).to(device)
+    #model = ResidualIsoformPredictor(
+    #    n_inputs=X.shape[1],
+    #    n_outputs=Y.shape[1],
+    #    hidden_sizes=(args.hidden1, args.hidden2, args.hidden3, args.hidden4),
+    #    dropout=args.dropout,
+    #).to(device)
+    model = TransformerIsoformPredictor(
+         n_genes=X.shape[1],        # number of input genes
+         n_isoforms=Y.shape[1],     # number of output isoforms
+         d_model=512,
+         nhead=8,
+        num_layers=3,
+        dim_feedforward=2048,
+        dropout=0.1,
     ).to(device)
 
     history = train_model(
@@ -296,7 +314,7 @@ def main():
         corr_mean = float(valid_corr.mean())
         print(f"Isoform correlation: mean Pearson {corr_mean:.4f} over {valid_corr.size}/{iso_corr.size} isoforms")
         args.save_dir.mkdir(parents=True, exist_ok=True)
-        corr_plot_path = args.save_dir / "isoform_correlation_boxplot_fcnn.png"
+        corr_plot_path = args.save_dir / "isoform_correlation_boxplot.png"
         plt.figure(figsize=(6, 4))
         plt.boxplot(valid_corr, vert=True, patch_artist=True)
         plt.ylabel("Pearson correlation")

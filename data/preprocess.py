@@ -227,3 +227,18 @@ def summarise_isoforms(
             row["correlation"] = float(correlations[iso_idx]) if not np.isnan(correlations[iso_idx]) else np.nan
         rows.append(row)
     return pd.DataFrame(rows).sort_values("avg_pred", ascending=False)
+
+
+def isoform_rank_correlation(isoform_df) -> float:
+    """
+    Compute Spearman-like correlation between predicted and true isoform ranks.
+
+    Expects columns 'rank_pred' and 'rank_true' in the dataframe returned by
+    `summarise_isoforms`. Returns NaN if insufficient data.
+    """
+    ranks_pred = isoform_df["rank_pred"].to_numpy()
+    ranks_true = isoform_df["rank_true"].to_numpy()
+    mask = ~np.isnan(ranks_pred) & ~np.isnan(ranks_true)
+    if mask.sum() < 2:
+        return float("nan")
+    return float(np.corrcoef(ranks_pred[mask], ranks_true[mask])[0, 1])

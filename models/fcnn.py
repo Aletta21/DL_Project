@@ -13,12 +13,15 @@ class IsoformPredictor(nn.Module):
         h1, h2, h3 = hidden_sizes
         self.net = nn.Sequential(
             nn.Linear(n_inputs, h1),
+            nn.BatchNorm1d(h1),
             nn.ReLU(),
             nn.Dropout(dropout),
             nn.Linear(h1, h2),
+            nn.BatchNorm1d(h2),
             nn.ReLU(),
             nn.Dropout(dropout),
             nn.Linear(h2, h3),
+            nn.BatchNorm1d(h3),
             nn.ReLU(),
             nn.Dropout(dropout),
             nn.Linear(h3, n_outputs),

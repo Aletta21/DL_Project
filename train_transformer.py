@@ -11,6 +11,8 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
+from sklearn.cluster import MiniBatchKMeans
+
 
 try:
     import scanpy as sc
@@ -27,14 +29,14 @@ from data import (
     densify,
     filter_silent_genes_isoforms,
     isoform_correlations,
-    isoform_rank_correlation,
     normalize_inputs,
     prepare_targets,
     summarise_isoforms,
     summarise_gene_isoforms,
 )
-from models import IsoformPredictor
-
+#from models import IsoformPredictor
+#from models import ResidualIsoformPredictor
+from models import TransformerIsoformPredictor
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Train FNN to map genes -> isoforms.")
@@ -229,8 +231,40 @@ def main():
         f"isoforms kept {len(transcript_names)}/{bulk_transcripts.var_names.size}"
     )
 
-    X = normalize_inputs(X_raw)
+        # =====================================================
+    # FIX 1: Reduce 45k genes → 2048 bins to avoid OOM
+    # =====================================================
+    from sklearn.cluster import MiniBatchKMeans
+
+    print(f"Original number of genes: {X_raw.shape[1]}")
+    print("Clustering genes into 2048 super-genes (bins) for memory-efficient Transformer...")
+
+    kmeans = MiniBatchKMeans(
+        n_clusters=2048,
+        batch_size=2048,
+        random_state=42,
+        max_iter=500,
+        n_init=10,
+    )
+    # Transpose: treat genes as samples, cells as features
+    cluster_labels = kmeans.fit_predict(X_raw.T)
+
+    # Aggregate raw counts per cluster
+    X_binned = np.zeros((X_raw.shape[0], 2048), dtype=np.float32)
+    for i in range(2048):
+        mask = cluster_labels == i
+        if mask.sum() > 0:
+            X_binned[:, i] = X_raw[:, mask].sum(axis=1)
+
+    # Re-normalize the binned expression (critical!)
+    X = normalize_inputs(X_binned)
+
+    # Keep your current target (log-counts for now)
     Y = prepare_targets(Y_raw)
+
+    print(f"Reduced input dimension: {X_raw.shape[1]} → {X.shape[1]} (binned genes)")
+    print(f"New X shape: {X.shape}, Y shape: {Y.shape}")
+
 
     transcript_gene_idx, _ = build_transcript_gene_index(
         gene_to_transcripts, gene_names, transcript_names
@@ -246,11 +280,26 @@ def main():
     )
 
     device = torch.device("cpu" if args.cpu or not torch.cuda.is_available() else "cuda")
-    model = IsoformPredictor(
-        n_inputs=X.shape[1],
-        n_outputs=Y.shape[1],
-        hidden_sizes=(args.hidden1, args.hidden2, args.hidden3),
-        dropout=args.dropout,
+    #model = IsoformPredictor(
+    #    n_inputs=X.shape[1],
+    #    n_outputs=Y.shape[1],
+    #    hidden_sizes=(args.hidden1, args.hidden2, args.hidden3),
+    #    dropout=args.dropout,
+    #).to(device)
+    #model = ResidualIsoformPredictor(
+    #    n_inputs=X.shape[1],
+    #    n_outputs=Y.shape[1],
+    #    hidden_sizes=(1024, 512, 512),   # keep last two the same
+    #    dropout=args.dropout,
+    #).to(device)
+    model = TransformerIsoformPredictor(
+        n_genes=X.shape[1],       
+        n_isoforms=Y.shape[1],
+        d_model=512,
+        nhead=8,
+        num_layers=3,
+        dim_feedforward=2048,
+        dropout=0.1,
     ).to(device)
 
     history = train_model(
@@ -296,7 +345,7 @@ def main():
         corr_mean = float(valid_corr.mean())
         print(f"Isoform correlation: mean Pearson {corr_mean:.4f} over {valid_corr.size}/{iso_corr.size} isoforms")
         args.save_dir.mkdir(parents=True, exist_ok=True)
-        corr_plot_path = args.save_dir / "isoform_correlation_boxplot_fcnn.png"
+        corr_plot_path = args.save_dir / "isoform_correlation_boxplot_transformer.png"
         plt.figure(figsize=(6, 4))
         plt.boxplot(valid_corr, vert=True, patch_artist=True)
         plt.ylabel("Pearson correlation")
@@ -317,11 +366,6 @@ def main():
     )
     print("\nTop isoforms by predicted abundance (test):")
     print(isoform_ranking.head(15).to_string(index=False))
-    rank_corr = isoform_rank_correlation(isoform_ranking)
-    if np.isnan(rank_corr):
-        print("Isoform rank correlation: insufficient data.")
-    else:
-        print(f"Isoform rank correlation (pred vs true ranks): {rank_corr:.4f}")
 
     isoform_df = summarise_gene_isoforms(
         test_preds_counts,
