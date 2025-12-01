@@ -54,17 +54,22 @@ def parse_args():
     parser.add_argument("--val-n", type=int, default=3500, help="Number of samples for validation split.")
     parser.add_argument("--test-n", type=int, default=1500, help="Number of samples for test split.")
     parser.add_argument("--epochs", type=int, default=100)
-    parser.add_argument("--batch-size", type=int, default=64)
-    parser.add_argument("--lr", type=float, default=2e-4)
-    parser.add_argument("--weight-decay", type=float, default=1e-5)
-    parser.add_argument("--dropout", type=float, default=0.2)
+    parser.add_argument("--batch-size", type=int, default=32)
+    parser.add_argument("--lr", type=float, default=3e-4)
+    parser.add_argument("--weight-decay", type=float, default=5e-5)
+    parser.add_argument("--dropout", type=float, default=0.1)
     parser.add_argument("--hidden1", type=int, default=1024)
     parser.add_argument("--hidden2", type=int, default=512)
     parser.add_argument("--hidden3", type=int, default=256)
+    parser.add_argument("--n-tokens", type=int, default=768, help="Number of projected tokens for Transformer.")
+    parser.add_argument("--d-model", type=int, default=256, help="Transformer model dimension.")
+    parser.add_argument("--nhead", type=int, default=4, help="Number of attention heads.")
+    parser.add_argument("--num-layers", type=int, default=2, help="Number of Transformer encoder layers.")
+    parser.add_argument("--dim-feedforward", type=int, default=1024, help="Feedforward dimension in Transformer.")
     parser.add_argument(
         "--save-dir",
         type=Path,
-        default=Path("isoform_model"),
+        default=Path("isoform_model_transformer"),
         help="Directory to store model + summaries.",
     )
     parser.add_argument("--cpu", action="store_true", help="Force CPU even if CUDA is available.")
@@ -231,39 +236,10 @@ def main():
         f"isoforms kept {len(transcript_names)}/{bulk_transcripts.var_names.size}"
     )
 
-        # =====================================================
-    # FIX 1: Reduce 45k genes → 2048 bins to avoid OOM
-    # =====================================================
-    from sklearn.cluster import MiniBatchKMeans
-
-    print(f"Original number of genes: {X_raw.shape[1]}")
-    print("Clustering genes into 2048 super-genes (bins) for memory-efficient Transformer...")
-
-    kmeans = MiniBatchKMeans(
-        n_clusters=2048,
-        batch_size=2048,
-        random_state=42,
-        max_iter=500,
-        n_init=10,
-    )
-    # Transpose: treat genes as samples, cells as features
-    cluster_labels = kmeans.fit_predict(X_raw.T)
-
-    # Aggregate raw counts per cluster
-    X_binned = np.zeros((X_raw.shape[0], 2048), dtype=np.float32)
-    for i in range(2048):
-        mask = cluster_labels == i
-        if mask.sum() > 0:
-            X_binned[:, i] = X_raw[:, mask].sum(axis=1)
-
-    # Re-normalize the binned expression (critical!)
-    X = normalize_inputs(X_binned)
-
-    # Keep your current target (log-counts for now)
+    # Normalize inputs; the Transformer model will learn a projection to a smaller token set
+    # to keep attention tractable on GPU.
+    X = normalize_inputs(X_raw)
     Y = prepare_targets(Y_raw)
-
-    print(f"Reduced input dimension: {X_raw.shape[1]} → {X.shape[1]} (binned genes)")
-    print(f"New X shape: {X.shape}, Y shape: {Y.shape}")
 
 
     transcript_gene_idx, _ = build_transcript_gene_index(
@@ -293,13 +269,14 @@ def main():
     #    dropout=args.dropout,
     #).to(device)
     model = TransformerIsoformPredictor(
-        n_genes=X.shape[1],       
+        n_genes=X.shape[1],
         n_isoforms=Y.shape[1],
-        d_model=512,
-        nhead=8,
-        num_layers=3,
-        dim_feedforward=2048,
-        dropout=0.1,
+        n_tokens=args.n_tokens,
+        d_model=args.d_model,
+        nhead=args.nhead,
+        num_layers=args.num_layers,
+        dim_feedforward=args.dim_feedforward,
+        dropout=args.dropout,
     ).to(device)
 
     history = train_model(

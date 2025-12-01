@@ -242,3 +242,38 @@ def isoform_rank_correlation(isoform_df) -> float:
     if mask.sum() < 2:
         return float("nan")
     return float(np.corrcoef(ranks_pred[mask], ranks_true[mask])[0, 1])
+
+
+def gene_spearman_rank_correlations(
+    pred_counts: np.ndarray,
+    true_counts: np.ndarray,
+    transcript_gene_idx: np.ndarray,
+    gene_names: Sequence[str],
+) -> np.ndarray:
+    """
+    Compute Spearman-like rank correlation per gene between predicted and true isoform abundances.
+
+    For each gene, takes the isoforms belonging to that gene, ranks their average predicted
+    and average true counts (descending), and computes the correlation between rank vectors.
+    Returns an array of shape (n_genes,) with NaN for genes with <2 isoforms or zero variance.
+    """
+    gene_names = np.asarray(gene_names)
+    n_genes = len(gene_names)
+    # Precompute per-isoform averages across samples
+    avg_pred = pred_counts.mean(axis=0)
+    avg_true = true_counts.mean(axis=0)
+    corrs = np.full(n_genes, np.nan, dtype=np.float32)
+
+    for g in range(n_genes):
+        mask = transcript_gene_idx == g
+        if mask.sum() < 2:
+            continue
+        p = avg_pred[mask]
+        t = avg_true[mask]
+        if np.std(p) == 0 or np.std(t) == 0:
+            continue
+        # Dense descending ranks
+        rank_p = np.argsort(np.argsort(-p))
+        rank_t = np.argsort(np.argsort(-t))
+        corrs[g] = float(np.corrcoef(rank_p, rank_t)[0, 1])
+    return corrs
