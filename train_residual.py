@@ -28,12 +28,9 @@ from data import (
     densify,
     filter_silent_genes_isoforms,
     isoform_correlations,
-    gene_spearman_rank_correlations,
-    isoform_rank_correlation,
+    gene_spearman_per_sample,
     normalize_inputs,
     prepare_targets,
-    summarise_isoforms,
-    summarise_gene_isoforms,
 )
 #from models import IsoformPredictor
 from models import ResidualIsoformPredictor
@@ -54,6 +51,11 @@ def parse_args():
     parser.add_argument("--train-n", type=int, default=5000, help="Number of samples for training split.")
     parser.add_argument("--val-n", type=int, default=3500, help="Number of samples for validation split.")
     parser.add_argument("--test-n", type=int, default=1500, help="Number of samples for test split.")
+    parser.add_argument(
+        "--whole-dataset",
+        action="store_true",
+        help="Use the entire dataset with default split 50/35/15 instead of fixed counts.",
+    )
     parser.add_argument("--epochs", type=int, default=250)
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--lr", type=float, default=2e-4)
@@ -63,6 +65,17 @@ def parse_args():
     parser.add_argument("--hidden2", type=int, default=1024)
     parser.add_argument("--hidden3", type=int, default=1024)
     parser.add_argument("--hidden4", type=int, default=512)
+    parser.add_argument(
+        "--skip-gene-rank",
+        action="store_true",
+        help="Skip per-gene Spearman rank correlations to speed up evaluation.",
+    )
+    parser.add_argument(
+        "--gene-rank-max-cells",
+        type=int,
+        default=2000,
+        help="Subsample this many cells for per-gene rank correlation (speeds up evaluation).",
+    )
     parser.add_argument(
         "--save-dir",
         type=Path,
@@ -96,15 +109,6 @@ def build_dataloaders(
     val_loader = make_loader(val_pair, batch_size, shuffle=False)
     test_loader = make_loader(test_pair, batch_size, shuffle=False)
     return GeneIsoformDataLoaders(train_loader, train_eval_loader, val_loader, test_loader)
-
-
-def presence_accuracy(
-    pred_counts: np.ndarray, true_counts: np.ndarray, threshold: float = 0.5
-) -> float:
-    """Binary accuracy on isoform presence (count > threshold)."""
-    pred_presence = pred_counts > threshold
-    true_presence = true_counts > threshold
-    return float((pred_presence == true_presence).mean())
 
 
 def train_model(
@@ -240,13 +244,26 @@ def main():
         gene_to_transcripts, gene_names, transcript_names
     )
 
+    if args.whole_dataset:
+        total = X.shape[0]
+        train_n = int(total * 0.5)
+        val_n = int(total * 0.35)
+        test_n = total - train_n - val_n
+        if min(train_n, val_n, test_n) <= 0:
+            raise SystemExit(
+                f"Dataset too small for 50/35/15 split (train {train_n}, val {val_n}, test {test_n})."
+            )
+        print(f"Using whole dataset: train {train_n}, val {val_n}, test {test_n}")
+    else:
+        train_n, val_n, test_n = args.train_n, args.val_n, args.test_n
+
     loaders = build_dataloaders(
         X,
         Y,
         batch_size=args.batch_size,
-        train_n=args.train_n,
-        val_n=args.val_n,
-        test_n=args.test_n,
+        train_n=train_n,
+        val_n=val_n,
+        test_n=test_n,
     )
 
     device = torch.device("cpu" if args.cpu or not torch.cuda.is_available() else "cuda")
@@ -295,14 +312,12 @@ def main():
         preds_log, targets_log = inference(model, loader, device)
         preds_counts = np.expm1(preds_log)
         targets_counts = np.expm1(targets_log)
-        acc = presence_accuracy(preds_counts, targets_counts)
         split_metrics[split_name] = {
             "mse": mse,
-            "accuracy": acc,
             "pred_counts": preds_counts,
             "true_counts": targets_counts,
         }
-        print(f"{split_name.capitalize()} | log-space MSE: {mse:.4f} | presence accuracy: {acc*100:.2f}%")
+        print(f"{split_name.capitalize()} | log-space MSE: {mse:.4f}")
 
     test_preds_counts = split_metrics["test"]["pred_counts"]
     test_true_counts = split_metrics["test"]["true_counts"]
@@ -325,7 +340,7 @@ def main():
         plt.close()
         print(f"Saved isoform correlation boxplot to {corr_plot_path}")
 
-    # Scatter plot predicted vs. true counts (sampled) to visualise overall correlation
+    # Scatter plot (log1p) for overall correlation
     args.save_dir.mkdir(parents=True, exist_ok=True)
     flat_pred = test_preds_counts.ravel()
     flat_true = test_true_counts.ravel()
@@ -335,56 +350,7 @@ def main():
         idx = rng.choice(flat_pred.size, size=max_points, replace=False)
         flat_pred = flat_pred[idx]
         flat_true = flat_true[idx]
-    scatter_path = args.save_dir / "pred_vs_true_scatter_residual.png"
-    plt.figure(figsize=(5, 5))
-    plt.scatter(flat_pred, flat_true, alpha=0.2, s=5)
-    xy_min = min(flat_pred.min(), flat_true.min())
-    xy_max = max(flat_pred.max(), flat_true.max())
-    plt.plot([xy_min, xy_max], [xy_min, xy_max], color="gray", linestyle="--", linewidth=1, label="bisector")
-    if np.std(flat_pred) > 0 and np.std(flat_true) > 0:
-        m, b = np.polyfit(flat_pred, flat_true, 1)
-        plt.plot([xy_min, xy_max], [m * xy_min + b, m * xy_max + b], color="orange", linewidth=1.5, label="regression")
-    plt.xlabel("Predicted counts")
-    plt.ylabel("True counts")
-    plt.title("Predicted vs. true counts (sampled)")
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig(scatter_path, dpi=150)
-    plt.close()
-    if flat_pred.std() == 0 or flat_true.std() == 0:
-        print("Scatter correlation: insufficient variance to compute Pearson.")
-    else:
-        scatter_corr = float(np.corrcoef(flat_pred, flat_true)[0, 1])
-        print(f"Scatter correlation (pred vs true, {flat_pred.size} points): {scatter_corr:.4f}")
-    print(f"Saved scatter plot to {scatter_path}")
 
-    # Clipped scatter (0..40k) with bisector and regression
-    clip_mask = (flat_pred >= 0) & (flat_pred <= 40000) & (flat_true >= 0) & (flat_true <= 40000)
-    cp = flat_pred[clip_mask]
-    ct = flat_true[clip_mask]
-    clipped_path = args.save_dir / "pred_vs_true_scatter_residual_clipped.png"
-    if cp.size > 0:
-        plt.figure(figsize=(5, 5))
-        plt.scatter(cp, ct, alpha=0.2, s=5)
-        xy_min_c = min(cp.min(), ct.min())
-        xy_max_c = max(cp.max(), ct.max())
-        plt.plot([xy_min_c, xy_max_c], [xy_min_c, xy_max_c], color="gray", linestyle="--", linewidth=1, label="bisector")
-        if np.std(cp) > 0 and np.std(ct) > 0:
-            m, b = np.polyfit(cp, ct, 1)
-            plt.plot([xy_min_c, xy_max_c], [m * xy_min_c + b, m * xy_max_c + b], color="orange", linewidth=1.5, label="regression")
-        plt.xlabel("Predicted counts (0-40k)")
-        plt.ylabel("True counts (0-40k)")
-        plt.title("Pred vs true (clipped to 0-40k)")
-        plt.legend()
-        plt.tight_layout()
-        plt.savefig(clipped_path, dpi=150)
-        plt.close()
-        if np.std(cp) > 0 and np.std(ct) > 0:
-            corr_clip = float(np.corrcoef(cp, ct)[0, 1])
-            print(f"Scatter correlation clipped (n={cp.size}): {corr_clip:.4f}")
-    print(f"Saved clipped scatter to {clipped_path}")
-
-    # Log-scale scatter on log1p values
     lp = np.log1p(flat_pred)
     lt = np.log1p(flat_true)
     log_path = args.save_dir / "pred_vs_true_scatter_residual_log.png"
@@ -393,7 +359,7 @@ def main():
     xy_min_l = min(lp.min(), lt.min())
     xy_max_l = max(lp.max(), lt.max())
     plt.plot([xy_min_l, xy_max_l], [xy_min_l, xy_max_l], color="gray", linestyle="--", linewidth=1, label="bisector")
-    if np.std(lp) > 0 and np.std(lt) > 0:
+    if lp.size > 1 and lt.size > 1 and np.std(lp) > 0 and np.std(lt) > 0:
         m, b = np.polyfit(lp, lt, 1)
         plt.plot([xy_min_l, xy_max_l], [m * xy_min_l + b, m * xy_max_l + b], color="orange", linewidth=1.5, label="regression")
         corr_log = float(np.corrcoef(lp, lt)[0, 1])
@@ -407,57 +373,54 @@ def main():
     plt.close()
     print(f"Saved log-scale scatter to {log_path}")
 
-    # Isoform ranking by predicted abundance (with correlation if available)
-    isoform_ranking = summarise_isoforms(
-        test_preds_counts,
-        test_true_counts,
-        transcript_gene_idx,
-        gene_names,
-        transcript_names,
-        correlations=iso_corr,
-    )
-    print("\nTop isoforms by predicted abundance (test):")
-    print(isoform_ranking.head(15).to_string(index=False))
-    rank_corr = isoform_rank_correlation(isoform_ranking)
-    if np.isnan(rank_corr):
-        print("Isoform rank correlation: insufficient data.")
-    else:
-        print(f"Isoform rank correlation (pred vs true ranks): {rank_corr:.4f}")
-    gene_rank_corrs = gene_spearman_rank_correlations(
-        test_preds_counts,
-        test_true_counts,
-        transcript_gene_idx,
-        gene_names,
-    )
-    valid_gene = ~np.isnan(gene_rank_corrs)
-    if valid_gene.any():
-        print(
-            f"Gene isoform rank correlation (per-gene Spearman): "
-            f"mean {float(np.nanmean(gene_rank_corrs)):.4f} | "
-            f"median {float(np.nanmedian(gene_rank_corrs)):.4f} over {valid_gene.sum()} genes"
+    # Per-gene Spearman correlation of isoform ranks computed per observation (optional)
+    if not args.skip_gene_rank:
+        gene_mean_corrs, gene_median_corrs = gene_spearman_per_sample(
+            test_preds_counts,
+            test_true_counts,
+            transcript_gene_idx,
+            gene_names,
+            max_cells=args.gene_rank_max_cells,
         )
-        gene_corr_path = args.save_dir / "gene_isoform_rank_correlation_boxplot_residual.png"
-        plt.figure(figsize=(6, 4))
-        plt.boxplot(gene_rank_corrs[valid_gene], vert=True, patch_artist=True)
-        plt.ylabel("Spearman-like rank correlation")
-        plt.title("Per-gene isoform rank correlation")
-        plt.tight_layout()
-        plt.savefig(gene_corr_path, dpi=150)
-        plt.close()
-        print(f"Saved gene isoform rank correlation boxplot to {gene_corr_path}")
-    else:
-        print("Gene isoform rank correlation: insufficient data.")
+        valid_mean = ~np.isnan(gene_mean_corrs)
+        valid_median = ~np.isnan(gene_median_corrs)
+        if valid_mean.any():
+            print(
+                f"Per-gene isoform rank correlation (Spearman over observations): "
+                f"mean of means {float(np.nanmean(gene_mean_corrs)):.4f} | "
+                f"median of means {float(np.nanmedian(gene_mean_corrs)):.4f} over {valid_mean.sum()} genes"
+            )
+            mean_box_path = args.save_dir / "gene_rank_corr_mean_boxplot_residual.png"
+            plt.figure(figsize=(6, 4))
+            plt.boxplot(gene_mean_corrs[valid_mean], vert=True, patch_artist=True)
+            plt.ylabel("Spearman correlation (mean across observations)")
+            plt.title("Per-gene isoform rank correlation (mean)")
+            plt.tight_layout()
+            plt.savefig(mean_box_path, dpi=150)
+            plt.close()
+            print(f"Saved per-gene mean rank correlation boxplot to {mean_box_path}")
+        else:
+            print("Per-gene mean rank correlation: insufficient data.")
 
-    isoform_df = summarise_gene_isoforms(
-        test_preds_counts,
-        test_true_counts,
-        transcript_gene_idx,
-        gene_names,
-        transcript_names,
-        top_k=args.top_k,
-    )
-    print("\nTop genes by predicted isoform abundance:")
-    print(isoform_df.head(10).to_string(index=False))
+        if valid_median.any():
+            print(
+                f"Per-gene isoform rank correlation (Spearman over observations): "
+                f"mean of medians {float(np.nanmean(gene_median_corrs)):.4f} | "
+                f"median of medians {float(np.nanmedian(gene_median_corrs)):.4f} over {valid_median.sum()} genes"
+            )
+            median_box_path = args.save_dir / "gene_rank_corr_median_boxplot_residual.png"
+            plt.figure(figsize=(6, 4))
+            plt.boxplot(gene_median_corrs[valid_median], vert=True, patch_artist=True)
+            plt.ylabel("Spearman correlation (median across observations)")
+            plt.title("Per-gene isoform rank correlation (median)")
+            plt.tight_layout()
+            plt.savefig(median_box_path, dpi=150)
+            plt.close()
+            print(f"Saved per-gene median rank correlation boxplot to {median_box_path}")
+        else:
+            print("Per-gene median rank correlation: insufficient data.")
+    else:
+        print("Skipping per-gene rank correlations (flag --skip-gene-rank).")
 
     print("\nSkipping artifact saving to avoid large files.")
 

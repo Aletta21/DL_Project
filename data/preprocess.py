@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Dict, List, Sequence, Tuple
 
 import numpy as np
+from scipy.stats import spearmanr
 
 
 def densify(adata) -> np.ndarray:
@@ -71,7 +72,7 @@ def filter_silent_genes_isoforms(
     kept_genes = gene_names[gene_mask]
     kept_gene_set = set(kept_genes)
 
-    transcript_to_gene = {}
+    transcript_to_gene: Dict[str, str] = {}
     for gene, transcripts in gene_to_transcripts.items():
         for tr in transcripts:
             transcript_to_gene[tr] = gene
@@ -109,7 +110,7 @@ def build_transcript_gene_index(
     gene_index = {gene: idx for idx, gene in enumerate(gene_names)}
     transcript_gene_idx = np.full(len(transcript_names), -1, dtype=np.int32)
     unmapped: List[str] = []
-    transcript_to_gene = {}
+    transcript_to_gene: Dict[str, str] = {}
     for gene, transcripts in gene_to_transcripts.items():
         for transcript in transcripts:
             transcript_to_gene[transcript] = gene
@@ -207,14 +208,13 @@ def summarise_isoforms(
     # Compute descending ranks (1 = highest)
     rank_pred = np.empty_like(avg_pred, dtype=np.int32)
     rank_true = np.empty_like(avg_true, dtype=np.int32)
-    # argsort on negative values yields descending order
     rank_pred[np.argsort(-avg_pred)] = np.arange(1, len(avg_pred) + 1, dtype=np.int32)
     rank_true[np.argsort(-avg_true)] = np.arange(1, len(avg_true) + 1, dtype=np.int32)
 
     rows = []
     for iso_idx, iso_name in enumerate(transcript_names):
         gene_idx = transcript_gene_idx[iso_idx]
-        gene_name = gene_names[gene_idx] if gene_idx >= 0 and gene_idx < len(gene_names) else "unknown"
+        gene_name = gene_names[gene_idx] if 0 <= gene_idx < len(gene_names) else "unknown"
         row = {
             "isoform": iso_name,
             "gene": gene_name,
@@ -259,7 +259,6 @@ def gene_spearman_rank_correlations(
     """
     gene_names = np.asarray(gene_names)
     n_genes = len(gene_names)
-    # Precompute per-isoform averages across samples
     avg_pred = pred_counts.mean(axis=0)
     avg_true = true_counts.mean(axis=0)
     corrs = np.full(n_genes, np.nan, dtype=np.float32)
@@ -272,8 +271,53 @@ def gene_spearman_rank_correlations(
         t = avg_true[mask]
         if np.std(p) == 0 or np.std(t) == 0:
             continue
-        # Dense descending ranks
         rank_p = np.argsort(np.argsort(-p))
         rank_t = np.argsort(np.argsort(-t))
         corrs[g] = float(np.corrcoef(rank_p, rank_t)[0, 1])
     return corrs
+
+
+def gene_spearman_per_sample(
+    pred_counts: np.ndarray,
+    true_counts: np.ndarray,
+    transcript_gene_idx: np.ndarray,
+    gene_names: Sequence[str],
+    max_cells: int | None = None,
+) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    For each gene, compute Spearman correlation of isoform ranks per observation.
+
+    Returns two arrays of shape (n_genes,):
+    - mean correlation per gene across observations
+    - median correlation per gene across observations
+    NaN for genes with <2 isoforms or no valid correlations.
+    """
+    gene_names = np.asarray(gene_names)
+    if max_cells is not None and pred_counts.shape[0] > max_cells:
+        rng = np.random.default_rng(42)
+        idx = rng.choice(pred_counts.shape[0], size=max_cells, replace=False)
+        pred_counts = pred_counts[idx]
+        true_counts = true_counts[idx]
+
+    n_genes = len(gene_names)
+    mean_corrs = np.full(n_genes, np.nan, dtype=np.float32)
+    median_corrs = np.full(n_genes, np.nan, dtype=np.float32)
+
+    for g in range(n_genes):
+        mask = transcript_gene_idx == g
+        if mask.sum() < 2:
+            continue
+        corrs: List[float] = []
+        p_sub = pred_counts[:, mask]
+        t_sub = true_counts[:, mask]
+        for p, t in zip(p_sub, t_sub):
+            if np.all(p == p[0]) or np.all(t == t[0]):
+                continue
+            corr = spearmanr(p, t).correlation
+            if np.isnan(corr):
+                continue
+            corrs.append(float(corr))
+        if corrs:
+            mean_corrs[g] = float(np.mean(corrs))
+            median_corrs[g] = float(np.median(corrs))
+    return mean_corrs, median_corrs
