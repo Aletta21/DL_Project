@@ -15,6 +15,7 @@ from .preprocess import (
     prepare_targets,
     summarise_isoforms,
     summarise_gene_isoforms,
+    apply_pca
 )
 from .loaders import (
     GeneIsoformDataLoaders,

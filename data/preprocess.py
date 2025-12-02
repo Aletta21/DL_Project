@@ -6,6 +6,7 @@ from typing import Dict, List, Sequence, Tuple
 
 import numpy as np
 from scipy.stats import spearmanr
+from sklearn.decomposition import PCA
 
 
 def densify(adata) -> np.ndarray:
@@ -328,3 +329,22 @@ def gene_spearman_per_sample(
             mean_corrs[g] = float(np.mean(corrs))
             median_corrs[g] = float(np.median(corrs))
     return mean_corrs, median_corrs
+
+
+def apply_pca(X, n_components):
+    """Apply PCA dimensionality reduction."""
+    print(f"Applying PCA with {n_components} components...")
+    
+    max_components = min(X.shape[0], X.shape[1]) - 1
+    if n_components > max_components:
+        print(f"Reducing n_components from {n_components} to {max_components}")
+        n_components = max_components
+    
+    pca = PCA(n_components=n_components, random_state=42)
+    X_pca = pca.fit_transform(X)
+    
+    explained_var = pca.explained_variance_ratio_.sum()
+    print(f"PCA complete: {X_pca.shape}")
+    print(f"Explained variance: {explained_var:.4f} ({explained_var*100:.2f}%)")
+    
+    return X_pca, pca, explained_var
