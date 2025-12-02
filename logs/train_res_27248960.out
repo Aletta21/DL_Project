@@ -1,0 +1,281 @@
+Running on host: n-62-11-15
+Tue Dec  2 12:59:14 2025       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 580.105.08             Driver Version: 580.105.08     CUDA Version: 13.0     |
++-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  Tesla V100-PCIE-32GB           On  |   00000000:D8:00.0 Off |                    0 |
+| N/A   30C    P0             25W /  250W |       0MiB /  32768MiB |      0%   E. Process |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+torch version: 2.8.0+cu128
+cuda available: True device count: 1
+current device: 0 name: Tesla V100-PCIE-32GB
+Loading AnnData files...
+Data loaded.
+Filtered zero-expression features: genes kept 45244/45263, isoforms kept 161990/162009
+Using whole dataset: train 9941, val 6958, test 2983
+Epoch 001 | train 2.3898 | val 1.2134
+Epoch 002 | train 1.1711 | val 1.1082
+Epoch 003 | train 1.0350 | val 0.9818
+Epoch 004 | train 0.9492 | val 0.9177
+Epoch 005 | train 0.8824 | val 0.8608
+Epoch 006 | train 0.8435 | val 0.8287
+Epoch 007 | train 0.8152 | val 0.8073
+Epoch 008 | train 0.7945 | val 0.7872
+Epoch 009 | train 0.7752 | val 0.7698
+Epoch 010 | train 0.7574 | val 0.7527
+Epoch 011 | train 0.7431 | val 0.7447
+Epoch 012 | train 0.7314 | val 0.7266
+Epoch 013 | train 0.7171 | val 0.7151
+Epoch 014 | train 0.7054 | val 0.7050
+Epoch 015 | train 0.6952 | val 0.6988
+Epoch 016 | train 0.6824 | val 0.6824
+Epoch 017 | train 0.6739 | val 0.6757
+Epoch 018 | train 0.6623 | val 0.6696
+Epoch 019 | train 0.6549 | val 0.6581
+Epoch 020 | train 0.6470 | val 0.6554
+Epoch 021 | train 0.6415 | val 0.6469
+Epoch 022 | train 0.6343 | val 0.6398
+Epoch 023 | train 0.6280 | val 0.6405
+Epoch 024 | train 0.6209 | val 0.6344
+Epoch 025 | train 0.6160 | val 0.6271
+Epoch 026 | train 0.6100 | val 0.6215
+Epoch 027 | train 0.6047 | val 0.6152
+Epoch 028 | train 0.6013 | val 0.6129
+Epoch 029 | train 0.5963 | val 0.6127
+Epoch 030 | train 0.5921 | val 0.6058
+Epoch 031 | train 0.5876 | val 0.6046
+Epoch 032 | train 0.5860 | val 0.5998
+Epoch 033 | train 0.5814 | val 0.5994
+Epoch 034 | train 0.5802 | val 0.5950
+Epoch 035 | train 0.5758 | val 0.5928
+Epoch 036 | train 0.5722 | val 0.5896
+Epoch 037 | train 0.5675 | val 0.5922
+Epoch 038 | train 0.5666 | val 0.5881
+Epoch 039 | train 0.5630 | val 0.5832
+Epoch 040 | train 0.5609 | val 0.5820
+Epoch 041 | train 0.5571 | val 0.5823
+Epoch 042 | train 0.5550 | val 0.5776
+Epoch 043 | train 0.5524 | val 0.5759
+Epoch 044 | train 0.5503 | val 0.5740
+Epoch 045 | train 0.5479 | val 0.5759
+Epoch 046 | train 0.5453 | val 0.5755
+Epoch 047 | train 0.5430 | val 0.5722
+Epoch 048 | train 0.5390 | val 0.5682
+Epoch 049 | train 0.5383 | val 0.5677
+Epoch 050 | train 0.5364 | val 0.5662
+Epoch 051 | train 0.5351 | val 0.5679
+Epoch 052 | train 0.5330 | val 0.5659
+Epoch 053 | train 0.5308 | val 0.5675
+Epoch 054 | train 0.5286 | val 0.5653
+Epoch 055 | train 0.5261 | val 0.5664
+Epoch 056 | train 0.5248 | val 0.5610
+Epoch 057 | train 0.5245 | val 0.5608
+Epoch 058 | train 0.5223 | val 0.5571
+Epoch 059 | train 0.5217 | val 0.5588
+Epoch 060 | train 0.5198 | val 0.5598
+Epoch 061 | train 0.5193 | val 0.5576
+Epoch 062 | train 0.5173 | val 0.5589
+Epoch 063 | train 0.5162 | val 0.5561
+Epoch 064 | train 0.5156 | val 0.5527
+Epoch 065 | train 0.5130 | val 0.5550
+Epoch 066 | train 0.5113 | val 0.5542
+Epoch 067 | train 0.5112 | val 0.5525
+Epoch 068 | train 0.5113 | val 0.5528
+Epoch 069 | train 0.5094 | val 0.5528
+Epoch 070 | train 0.5079 | val 0.5518
+Epoch 071 | train 0.5072 | val 0.5519
+Epoch 072 | train 0.5069 | val 0.5558
+Epoch 073 | train 0.5063 | val 0.5499
+Epoch 074 | train 0.5056 | val 0.5544
+Epoch 075 | train 0.5055 | val 0.5538
+Epoch 076 | train 0.5034 | val 0.5496
+Epoch 077 | train 0.5028 | val 0.5518
+Epoch 078 | train 0.5017 | val 0.5497
+Epoch 079 | train 0.5004 | val 0.5501
+Epoch 080 | train 0.5025 | val 0.5527
+Epoch 081 | train 0.5015 | val 0.5493
+Epoch 082 | train 0.4993 | val 0.5465
+Epoch 083 | train 0.4979 | val 0.5500
+Epoch 084 | train 0.4978 | val 0.5490
+Epoch 085 | train 0.4972 | val 0.5458
+Epoch 086 | train 0.4967 | val 0.5479
+Epoch 087 | train 0.4953 | val 0.5454
+Epoch 088 | train 0.4959 | val 0.5473
+Epoch 089 | train 0.4961 | val 0.5453
+Epoch 090 | train 0.4950 | val 0.5457
+Epoch 091 | train 0.4942 | val 0.5449
+Epoch 092 | train 0.4937 | val 0.5472
+Epoch 093 | train 0.4937 | val 0.5432
+Epoch 094 | train 0.4926 | val 0.5456
+Epoch 095 | train 0.4926 | val 0.5448
+Epoch 096 | train 0.4920 | val 0.5456
+Epoch 097 | train 0.4914 | val 0.5447
+Epoch 098 | train 0.4909 | val 0.5449
+Epoch 099 | train 0.4914 | val 0.5437
+Epoch 100 | train 0.4900 | val 0.5422
+Epoch 101 | train 0.4889 | val 0.5432
+Epoch 102 | train 0.4891 | val 0.5426
+Epoch 103 | train 0.4887 | val 0.5410
+Epoch 104 | train 0.4883 | val 0.5437
+Epoch 105 | train 0.4882 | val 0.5413
+Epoch 106 | train 0.4873 | val 0.5412
+Epoch 107 | train 0.4864 | val 0.5448
+Epoch 108 | train 0.4869 | val 0.5411
+Epoch 109 | train 0.4870 | val 0.5417
+Epoch 110 | train 0.4867 | val 0.5417
+Epoch 111 | train 0.4860 | val 0.5386
+Epoch 112 | train 0.4854 | val 0.5392
+Epoch 113 | train 0.4849 | val 0.5397
+Epoch 114 | train 0.4857 | val 0.5402
+Epoch 115 | train 0.4838 | val 0.5386
+Epoch 116 | train 0.4835 | val 0.5390
+Epoch 117 | train 0.4840 | val 0.5425
+Epoch 118 | train 0.4837 | val 0.5388
+Epoch 119 | train 0.4831 | val 0.5365
+Epoch 120 | train 0.4830 | val 0.5443
+Epoch 121 | train 0.4835 | val 0.5370
+Epoch 122 | train 0.4824 | val 0.5380
+Epoch 123 | train 0.4821 | val 0.5368
+Epoch 124 | train 0.4816 | val 0.5371
+Epoch 125 | train 0.4820 | val 0.5367
+Epoch 126 | train 0.4811 | val 0.5388
+Epoch 127 | train 0.4816 | val 0.5402
+Epoch 128 | train 0.4810 | val 0.5361
+Epoch 129 | train 0.4800 | val 0.5402
+Epoch 130 | train 0.4791 | val 0.5353
+Epoch 131 | train 0.4800 | val 0.5424
+Epoch 132 | train 0.4811 | val 0.5354
+Epoch 133 | train 0.4792 | val 0.5348
+Epoch 134 | train 0.4783 | val 0.5358
+Epoch 135 | train 0.4791 | val 0.5383
+Epoch 136 | train 0.4786 | val 0.5345
+Epoch 137 | train 0.4782 | val 0.5357
+Epoch 138 | train 0.4775 | val 0.5334
+Epoch 139 | train 0.4780 | val 0.5339
+Epoch 140 | train 0.4776 | val 0.5355
+Epoch 141 | train 0.4774 | val 0.5345
+Epoch 142 | train 0.4773 | val 0.5324
+Epoch 143 | train 0.4766 | val 0.5341
+Epoch 144 | train 0.4785 | val 0.5342
+Epoch 145 | train 0.4766 | val 0.5325
+Epoch 146 | train 0.4759 | val 0.5330
+Epoch 147 | train 0.4762 | val 0.5348
+Epoch 148 | train 0.4765 | val 0.5332
+Epoch 149 | train 0.4753 | val 0.5327
+Epoch 150 | train 0.4748 | val 0.5324
+Epoch 151 | train 0.4757 | val 0.5327
+Epoch 152 | train 0.4752 | val 0.5338
+Epoch 153 | train 0.4744 | val 0.5337
+Epoch 154 | train 0.4738 | val 0.5325
+Epoch 155 | train 0.4740 | val 0.5323
+Epoch 156 | train 0.4740 | val 0.5325
+Epoch 157 | train 0.4739 | val 0.5321
+Epoch 158 | train 0.4732 | val 0.5319
+Epoch 159 | train 0.4736 | val 0.5375
+Epoch 160 | train 0.4740 | val 0.5331
+Epoch 161 | train 0.4740 | val 0.5370
+Epoch 162 | train 0.4741 | val 0.5301
+Epoch 163 | train 0.4726 | val 0.5317
+Epoch 164 | train 0.4719 | val 0.5318
+Epoch 165 | train 0.4726 | val 0.5305
+Epoch 166 | train 0.4726 | val 0.5300
+Epoch 167 | train 0.4721 | val 0.5320
+Epoch 168 | train 0.4723 | val 0.5309
+Epoch 169 | train 0.4717 | val 0.5346
+Epoch 170 | train 0.4712 | val 0.5304
+Epoch 171 | train 0.4712 | val 0.5302
+Epoch 172 | train 0.4716 | val 0.5308
+Epoch 173 | train 0.4713 | val 0.5307
+Epoch 174 | train 0.4713 | val 0.5299
+Epoch 175 | train 0.4709 | val 0.5288
+Epoch 176 | train 0.4715 | val 0.5296
+Epoch 177 | train 0.4691 | val 0.5290
+Epoch 178 | train 0.4699 | val 0.5301
+Epoch 179 | train 0.4695 | val 0.5318
+Epoch 180 | train 0.4703 | val 0.5293
+Epoch 181 | train 0.4707 | val 0.5317
+Epoch 182 | train 0.4699 | val 0.5304
+Epoch 183 | train 0.4686 | val 0.5297
+Epoch 184 | train 0.4692 | val 0.5307
+Epoch 185 | train 0.4696 | val 0.5297
+Epoch 186 | train 0.4684 | val 0.5287
+Epoch 187 | train 0.4693 | val 0.5292
+Epoch 188 | train 0.4696 | val 0.5274
+Epoch 189 | train 0.4684 | val 0.5305
+Epoch 190 | train 0.4690 | val 0.5279
+Epoch 191 | train 0.4678 | val 0.5291
+Epoch 192 | train 0.4688 | val 0.5284
+Epoch 193 | train 0.4694 | val 0.5291
+Epoch 194 | train 0.4685 | val 0.5315
+Epoch 195 | train 0.4677 | val 0.5285
+Epoch 196 | train 0.4678 | val 0.5300
+Epoch 197 | train 0.4670 | val 0.5283
+Epoch 198 | train 0.4669 | val 0.5304
+Epoch 199 | train 0.4674 | val 0.5276
+Epoch 200 | train 0.4672 | val 0.5270
+Epoch 201 | train 0.4669 | val 0.5277
+Epoch 202 | train 0.4670 | val 0.5265
+Epoch 203 | train 0.4666 | val 0.5253
+Epoch 204 | train 0.4661 | val 0.5273
+Epoch 205 | train 0.4662 | val 0.5285
+Epoch 206 | train 0.4671 | val 0.5278
+Epoch 207 | train 0.4664 | val 0.5284
+Epoch 208 | train 0.4658 | val 0.5277
+Epoch 209 | train 0.4659 | val 0.5269
+Epoch 210 | train 0.4662 | val 0.5271
+Epoch 211 | train 0.4652 | val 0.5289
+Epoch 212 | train 0.4657 | val 0.5265
+Epoch 213 | train 0.4653 | val 0.5266
+Epoch 214 | train 0.4656 | val 0.5258
+Epoch 215 | train 0.4650 | val 0.5263
+Epoch 216 | train 0.4645 | val 0.5265
+Epoch 217 | train 0.4650 | val 0.5268
+Epoch 218 | train 0.4646 | val 0.5274
+Epoch 219 | train 0.4648 | val 0.5243
+Epoch 220 | train 0.4651 | val 0.5269
+Epoch 221 | train 0.4650 | val 0.5273
+Epoch 222 | train 0.4649 | val 0.5252
+Epoch 223 | train 0.4648 | val 0.5291
+Epoch 224 | train 0.4645 | val 0.5269
+Epoch 225 | train 0.4640 | val 0.5262
+Epoch 226 | train 0.4642 | val 0.5262
+Epoch 227 | train 0.4646 | val 0.5252
+Epoch 228 | train 0.4639 | val 0.5274
+Epoch 229 | train 0.4646 | val 0.5283
+Epoch 230 | train 0.4639 | val 0.5246
+Epoch 231 | train 0.4632 | val 0.5252
+Epoch 232 | train 0.4627 | val 0.5254
+Epoch 233 | train 0.4630 | val 0.5247
+Epoch 234 | train 0.4626 | val 0.5261
+Epoch 235 | train 0.4629 | val 0.5268
+Epoch 236 | train 0.4627 | val 0.5252
+Epoch 237 | train 0.4626 | val 0.5256
+Epoch 238 | train 0.4628 | val 0.5275
+Epoch 239 | train 0.4635 | val 0.5249
+No val improvement for 20 epochs, stopping early at epoch 239.
+Train | log-space MSE: 0.4377
+Val | log-space MSE: 0.5243
+Test | log-space MSE: 0.5235
+Isoform correlation: mean Pearson 0.6327 over 161990/161990 isoforms
+Saved isoform correlation boxplot to isoform_model_residual/isoform_correlation_boxplot.png
+Scatter correlation log1p (n=50000): 0.8502
+Saved log-scale scatter to isoform_model_residual/pred_vs_true_scatter_residual_log.png
+Per-gene isoform rank correlation (Spearman over observations): mean of means 0.7895 | median of means 0.8091 over 899 genes
+Saved per-gene mean rank correlation boxplot to isoform_model_residual/gene_rank_corr_mean_boxplot_residual.png
+Per-gene isoform rank correlation (Spearman over observations): mean of medians 0.8328 | median of medians 0.8498 over 899 genes
+Saved per-gene median rank correlation boxplot to isoform_model_residual/gene_rank_corr_median_boxplot_residual.png
+
+Skipping artifact saving to avoid large files.

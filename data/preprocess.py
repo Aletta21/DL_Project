@@ -299,6 +299,13 @@ def gene_spearman_per_sample(
         pred_counts = pred_counts[idx]
         true_counts = true_counts[idx]
 
+    # Drop isoforms that are always zero in both pred and true across the sampled cells
+    iso_mask_nonzero = (pred_counts.sum(axis=0) > 0) | (true_counts.sum(axis=0) > 0)
+    if not np.all(iso_mask_nonzero):
+        pred_counts = pred_counts[:, iso_mask_nonzero]
+        true_counts = true_counts[:, iso_mask_nonzero]
+        transcript_gene_idx = transcript_gene_idx[iso_mask_nonzero]
+
     n_genes = len(gene_names)
     mean_corrs = np.full(n_genes, np.nan, dtype=np.float32)
     median_corrs = np.full(n_genes, np.nan, dtype=np.float32)

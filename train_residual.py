@@ -23,6 +23,7 @@ from data import (
     GeneIsoformDataLoaders,
     make_loader,
     train_val_test_split,
+    aggregate_by_gene,
     align_anndata,
     build_transcript_gene_index,
     densify,
@@ -73,8 +74,14 @@ def parse_args():
     parser.add_argument(
         "--gene-rank-max-cells",
         type=int,
-        default=2000,
+        default=1000,
         help="Subsample this many cells for per-gene rank correlation (speeds up evaluation).",
+    )
+    parser.add_argument(
+        "--gene-rank-top-genes",
+        type=int,
+        default=1000,
+        help="Use only the top-N genes by total test-set expression for per-gene rank correlation (<=0 uses all).",
     )
     parser.add_argument(
         "--save-dir",
@@ -375,11 +382,37 @@ def main():
 
     # Per-gene Spearman correlation of isoform ranks computed per observation (optional)
     if not args.skip_gene_rank:
+        # Optional: restrict to top-N genes by total test-set expression to speed up evaluation
+        top_gene_idx = None
+        if args.gene_rank_top_genes is not None and args.gene_rank_top_genes > 0:
+            gene_counts = aggregate_by_gene(test_true_counts, transcript_gene_idx, len(gene_names))
+            gene_sums = gene_counts.sum(axis=0)
+            n_top = min(args.gene_rank_top_genes, len(gene_names))
+            top_gene_idx = np.argsort(gene_sums)[::-1][:n_top]
+            iso_mask = np.isin(transcript_gene_idx, top_gene_idx)
+            if iso_mask.any():
+                test_preds_counts_top = test_preds_counts[:, iso_mask]
+                test_true_counts_top = test_true_counts[:, iso_mask]
+                tg = transcript_gene_idx[iso_mask]
+                remap = {g: i for i, g in enumerate(top_gene_idx)}
+                transcript_gene_idx_top = np.array([remap.get(g, -1) for g in tg], dtype=np.int32)
+                gene_names_top = gene_names[top_gene_idx]
+            else:
+                transcript_gene_idx_top = transcript_gene_idx
+                gene_names_top = gene_names
+                test_preds_counts_top = test_preds_counts
+                test_true_counts_top = test_true_counts
+        else:
+            transcript_gene_idx_top = transcript_gene_idx
+            gene_names_top = gene_names
+            test_preds_counts_top = test_preds_counts
+            test_true_counts_top = test_true_counts
+
         gene_mean_corrs, gene_median_corrs = gene_spearman_per_sample(
-            test_preds_counts,
-            test_true_counts,
-            transcript_gene_idx,
-            gene_names,
+            test_preds_counts_top,
+            test_true_counts_top,
+            transcript_gene_idx_top,
+            gene_names_top,
             max_cells=args.gene_rank_max_cells,
         )
         valid_mean = ~np.isnan(gene_mean_corrs)

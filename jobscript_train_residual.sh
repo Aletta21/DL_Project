@@ -1,6 +1,6 @@
 #!/bin/sh
 ### LSF options for DTU GPU queues
-#BSUB -q gpul40s
+#BSUB -q gpuv100
 #BSUB -J train_iso_res
 #BSUB -n 4
 #BSUB -gpu "num=1:mode=exclusive_process"
