@@ -48,9 +48,9 @@ def parse_args():
         default=DEFAULT_ISOFORM_H5AD,
         help="Path to isoform-level AnnData file.",
     )
-    parser.add_argument("--train-n", type=int, default=5000, help="Number of samples for training split.")
-    parser.add_argument("--val-n", type=int, default=3500, help="Number of samples for validation split.")
-    parser.add_argument("--test-n", type=int, default=1500, help="Number of samples for test split.")
+    parser.add_argument("--train-n", type=int, default=1000, help="Number of samples for training split.")
+    parser.add_argument("--val-n", type=int, default=700, help="Number of samples for validation split.")
+    parser.add_argument("--test-n", type=int, default=300, help="Number of samples for test split.")
     parser.add_argument(
         "--whole-dataset",
         action="store_true",
@@ -68,7 +68,7 @@ def parse_args():
     parser.add_argument(
         "--pca-components",
         type=int,
-        default=500,
+        default=100,
         help="Number of PCA components to keep for gene inputs before training.",
     )
     parser.add_argument(
@@ -252,12 +252,6 @@ def main():
     X = normalize_inputs(X_raw)
     Y = prepare_targets(Y_raw)
 
-    X, pca_model, pca_explained_var = apply_pca(X, args.pca_components)
-    print(
-        f"Using PCA-transformed inputs: {X.shape[1]} components "
-        f"(explained variance {pca_explained_var:.4f}, {pca_explained_var*100:.2f}%)"
-    )
-
     transcript_gene_idx, _ = build_transcript_gene_index(
         gene_to_transcripts, gene_names, transcript_names
     )
@@ -275,18 +269,38 @@ def main():
     else:
         train_n, val_n, test_n = args.train_n, args.val_n, args.test_n
 
-    loaders = build_dataloaders(
+    # Split before PCA to avoid leakage, then fit PCA on the training inputs only.
+    (train_pair, val_pair, test_pair) = train_val_test_split(
         X,
         Y,
-        batch_size=args.batch_size,
         train_n=train_n,
         val_n=val_n,
         test_n=test_n,
+        seed=42,
+    )
+
+    X_train, Y_train = train_pair
+    X_val, Y_val = val_pair
+    X_test, Y_test = test_pair
+
+    X_train_pca, pca_model, pca_explained_var = apply_pca(X_train, args.pca_components)
+    X_val_pca = pca_model.transform(X_val)
+    X_test_pca = pca_model.transform(X_test)
+    print(
+        f"Using PCA-transformed inputs: {X_train_pca.shape[1]} components "
+        f"(explained variance {pca_explained_var:.4f}, {pca_explained_var*100:.2f}%)"
+    )
+
+    loaders = GeneIsoformDataLoaders(
+        train=make_loader((X_train_pca, Y_train), batch_size=args.batch_size, shuffle=True),
+        train_eval=make_loader((X_train_pca, Y_train), batch_size=args.batch_size, shuffle=False),
+        val=make_loader((X_val_pca, Y_val), batch_size=args.batch_size, shuffle=False),
+        test=make_loader((X_test_pca, Y_test), batch_size=args.batch_size, shuffle=False),
     )
 
     device = torch.device("cpu" if args.cpu or not torch.cuda.is_available() else "cuda")
     model = ResidualIsoformPredictor(
-        n_inputs=X.shape[1],
+        n_inputs=X_train_pca.shape[1],
         n_outputs=Y.shape[1],
         hidden_sizes=(args.hidden1, args.hidden2, args.hidden3, args.hidden4),
         dropout=args.dropout,

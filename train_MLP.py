@@ -49,15 +49,15 @@ def parse_args():
         help="Path to isoform-level AnnData file.",
     )
     parser.add_argument("--pca_components", type=int, default=100, help="Number of PCA components to use for input data.")
-    parser.add_argument("--train-n", type=int, default=5000, help="Number of samples for training split.")
-    parser.add_argument("--val-n", type=int, default=3500, help="Number of samples for validation split.")
-    parser.add_argument("--test-n", type=int, default=1500, help="Number of samples for test split.")
+    parser.add_argument("--train-n", type=int, default=1000, help="Number of samples for training split.")
+    parser.add_argument("--val-n", type=int, default=700, help="Number of samples for validation split.")
+    parser.add_argument("--test-n", type=int, default=300, help="Number of samples for test split.")
     parser.add_argument(
         "--whole-dataset",
         action="store_true",
         help="Use the entire dataset with default split 50/35/15 instead of fixed counts.",
     )
-    parser.add_argument("--epochs", type=int, default=300)
+    parser.add_argument("--epochs", type=int, default=200)
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--lr", type=float, default=2e-4)
     parser.add_argument("--weight-decay", type=float, default=1e-5)
@@ -96,6 +96,30 @@ def parse_args():
     )
     parser.add_argument("--cpu", action="store_true", help="Force CPU even if CUDA is available.")
     parser.add_argument("--top-k", type=int, default=3, help="How many isoforms to list per gene.")
+    parser.add_argument(
+        "--lr-scheduler",
+        choices=["none", "plateau"],
+        default="none",
+        help="Learning-rate schedule: 'none' keeps lr fixed; 'plateau' halves lr after patience epochs without val improvement.",
+    )
+    parser.add_argument(
+        "--plateau-factor",
+        type=float,
+        default=0.5,
+        help="Multiplicative factor for ReduceLROnPlateau when --lr-scheduler=plateau.",
+    )
+    parser.add_argument(
+        "--plateau-patience",
+        type=int,
+        default=10,
+        help="Patience (epochs) before reducing lr when --lr-scheduler=plateau.",
+    )
+    parser.add_argument(
+        "--plateau-min-lr",
+        type=float,
+        default=1e-5,
+        help="Minimum lr when --lr-scheduler=plateau (raise this to avoid lr getting too small).",
+    )
     return parser.parse_args()
 
 
@@ -132,12 +156,22 @@ def train_model(
     lr: float,
     weight_decay: float,
     patience: int = 10,
+    lr_scheduler: str = "none",
+    plateau_factor: float = 0.5,
+    plateau_patience: int = 10,
+    plateau_min_lr: float = 1e-5,
 ) -> Dict[str, List[float]]:
     """Masked-MSE training loop with best-checkpoint tracking in memory."""
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode="min", factor=0.5, patience=10, min_lr=1e-6
-    )
+    scheduler = None
+    if lr_scheduler == "plateau":
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer,
+            mode="min",
+            factor=plateau_factor,
+            patience=plateau_patience,
+            min_lr=plateau_min_lr,
+        )
     history = {"train": [], "val": []}
     best_state = None
     best_val = float("inf")
@@ -167,7 +201,8 @@ def train_model(
         train_loss /= len(train_loader.dataset)
 
         val_loss = evaluate_loss(model, val_loader, device)
-        scheduler.step(val_loss)
+        if scheduler is not None:
+            scheduler.step(val_loss)
 
         history["train"].append(train_loss)
         history["val"].append(val_loss)
@@ -257,12 +292,6 @@ def main():
     X = normalize_inputs(X_raw)
     Y = prepare_targets(Y_raw)
 
-    X, pca_model, pca_explained_var = apply_pca(X, args.pca_components)
-    print(
-        f"Using PCA-transformed inputs: {X.shape[1]} components "
-        f"(explained variance {pca_explained_var:.4f}, {pca_explained_var*100:.2f}%)"
-    )
-
     transcript_gene_idx, _ = build_transcript_gene_index(
         gene_to_transcripts, gene_names, transcript_names
     )
@@ -281,18 +310,38 @@ def main():
     else:
         train_n, val_n, test_n = args.train_n, args.val_n, args.test_n
 
-    loaders = build_dataloaders(
+    # Split first to avoid PCA leakage, then fit PCA only on the training data.
+    (train_pair, val_pair, test_pair) = train_val_test_split(
         X,
         Y,
-        batch_size=args.batch_size,
         train_n=train_n,
         val_n=val_n,
         test_n=test_n,
+        seed=42,
+    )
+
+    X_train, Y_train = train_pair
+    X_val, Y_val = val_pair
+    X_test, Y_test = test_pair
+
+    X_train_pca, pca_model, pca_explained_var = apply_pca(X_train, args.pca_components)
+    X_val_pca = pca_model.transform(X_val)
+    X_test_pca = pca_model.transform(X_test)
+    print(
+        f"Using PCA-transformed inputs: {X_train_pca.shape[1]} components "
+        f"(explained variance {pca_explained_var:.4f}, {pca_explained_var*100:.2f}%)"
+    )
+
+    loaders = GeneIsoformDataLoaders(
+        train=make_loader((X_train_pca, Y_train), batch_size=args.batch_size, shuffle=True),
+        train_eval=make_loader((X_train_pca, Y_train), batch_size=args.batch_size, shuffle=False),
+        val=make_loader((X_val_pca, Y_val), batch_size=args.batch_size, shuffle=False),
+        test=make_loader((X_test_pca, Y_test), batch_size=args.batch_size, shuffle=False),
     )
 
     device = torch.device("cpu" if args.cpu or not torch.cuda.is_available() else "cuda")
     model = IsoformPredictor(
-        n_inputs=X.shape[1],
+        n_inputs=X_train_pca.shape[1],
         n_outputs=Y.shape[1],
         hidden_sizes=(args.hidden1, args.hidden2, args.hidden3),
         dropout=args.dropout,
@@ -307,6 +356,10 @@ def main():
         lr=args.lr,
         weight_decay=args.weight_decay,
         patience=20,
+        lr_scheduler=args.lr_scheduler,
+        plateau_factor=args.plateau_factor,
+        plateau_patience=args.plateau_patience,
+        plateau_min_lr=args.plateau_min_lr,
     )
 
     criterion = nn.MSELoss()

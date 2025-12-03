@@ -1,0 +1,283 @@
+Running on host: n-62-20-16
+Wed Dec  3 14:08:53 2025       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 580.105.08             Driver Version: 580.105.08     CUDA Version: 13.0     |
++-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  Tesla V100-PCIE-32GB           On  |   00000000:D8:00.0 Off |                    0 |
+| N/A   29C    P0             25W /  250W |       0MiB /  32768MiB |      0%   E. Process |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+Loading AnnData...
+Data loaded.
+Filtered zero-expression features: genes kept 45244/45263, isoforms kept 161990/162009
+Data stats after scaling: mean -0.000, std 1.000
+Epoch 001 | train 0.7950 (rec 0.7876, kl 0.3673) | val 0.7201 (rec 0.7119, kl 0.4120) | beta 0.020
+Epoch 002 | train 0.6841 (rec 0.6727, kl 0.2850) | val 0.6650 (rec 0.6525, kl 0.3106) | beta 0.040
+Epoch 003 | train 0.6470 (rec 0.6314, kl 0.2610) | val 0.6410 (rec 0.6252, kl 0.2624) | beta 0.060
+Epoch 004 | train 0.6259 (rec 0.6059, kl 0.2503) | val 0.6222 (rec 0.6006, kl 0.2710) | beta 0.080
+Epoch 005 | train 0.6101 (rec 0.5870, kl 0.2309) | val 0.6116 (rec 0.5885, kl 0.2304) | beta 0.100
+Epoch 006 | train 0.6001 (rec 0.5744, kl 0.2139) | val 0.6029 (rec 0.5767, kl 0.2185) | beta 0.120
+Epoch 007 | train 0.5929 (rec 0.5648, kl 0.2003) | val 0.5995 (rec 0.5718, kl 0.1978) | beta 0.140
+Epoch 008 | train 0.5890 (rec 0.5591, kl 0.1870) | val 0.5943 (rec 0.5658, kl 0.1786) | beta 0.160
+Epoch 009 | train 0.5957 (rec 0.5635, kl 0.1786) | val 0.5955 (rec 0.5621, kl 0.1853) | beta 0.180
+Epoch 010 | train 0.5849 (rec 0.5521, kl 0.1640) | val 0.5877 (rec 0.5567, kl 0.1548) | beta 0.200
+Epoch 011 | train 0.5813 (rec 0.5467, kl 0.1574) | val 0.5938 (rec 0.5599, kl 0.1541) | beta 0.220
+Epoch 012 | train 0.5778 (rec 0.5427, kl 0.1460) | val 0.5878 (rec 0.5541, kl 0.1403) | beta 0.240
+Epoch 013 | train 0.5764 (rec 0.5399, kl 0.1403) | val 0.5810 (rec 0.5451, kl 0.1383) | beta 0.260
+Epoch 014 | train 0.5708 (rec 0.5338, kl 0.1320) | val 0.5790 (rec 0.5437, kl 0.1261) | beta 0.280
+Epoch 015 | train 0.5679 (rec 0.5300, kl 0.1262) | val 0.5762 (rec 0.5395, kl 0.1223) | beta 0.300
+Epoch 016 | train 0.5661 (rec 0.5277, kl 0.1202) | val 0.5739 (rec 0.5367, kl 0.1162) | beta 0.320
+Epoch 017 | train 0.5663 (rec 0.5269, kl 0.1160) | val 0.5731 (rec 0.5342, kl 0.1143) | beta 0.340
+Epoch 018 | train 0.5632 (rec 0.5230, kl 0.1115) | val 0.5689 (rec 0.5301, kl 0.1076) | beta 0.360
+Epoch 019 | train 0.5601 (rec 0.5194, kl 0.1071) | val 0.5710 (rec 0.5315, kl 0.1039) | beta 0.380
+Epoch 020 | train 0.5585 (rec 0.5170, kl 0.1037) | val 0.5676 (rec 0.5274, kl 0.1007) | beta 0.400
+Epoch 021 | train 0.5559 (rec 0.5139, kl 0.1002) | val 0.5682 (rec 0.5275, kl 0.0970) | beta 0.420
+Epoch 022 | train 0.5545 (rec 0.5117, kl 0.0974) | val 0.5664 (rec 0.5248, kl 0.0945) | beta 0.440
+Epoch 023 | train 0.5542 (rec 0.5104, kl 0.0952) | val 0.5663 (rec 0.5229, kl 0.0945) | beta 0.460
+Epoch 024 | train 0.5535 (rec 0.5082, kl 0.0943) | val 0.5653 (rec 0.5215, kl 0.0912) | beta 0.480
+Epoch 025 | train 0.5537 (rec 0.5080, kl 0.0913) | val 0.5665 (rec 0.5223, kl 0.0884) | beta 0.500
+Epoch 026 | train 0.5510 (rec 0.5043, kl 0.0897) | val 0.5645 (rec 0.5187, kl 0.0881) | beta 0.520
+Epoch 027 | train 0.5510 (rec 0.5039, kl 0.0873) | val 0.5615 (rec 0.5158, kl 0.0848) | beta 0.540
+Epoch 028 | train 0.5509 (rec 0.5028, kl 0.0860) | val 0.5637 (rec 0.5164, kl 0.0844) | beta 0.560
+Epoch 029 | train 0.5519 (rec 0.5032, kl 0.0840) | val 0.5608 (rec 0.5140, kl 0.0806) | beta 0.580
+Epoch 030 | train 0.5503 (rec 0.5002, kl 0.0835) | val 0.5611 (rec 0.5119, kl 0.0819) | beta 0.600
+Epoch 031 | train 0.5487 (rec 0.4984, kl 0.0812) | val 0.5610 (rec 0.5123, kl 0.0786) | beta 0.620
+Epoch 032 | train 0.5500 (rec 0.4987, kl 0.0802) | val 0.5615 (rec 0.5117, kl 0.0777) | beta 0.640
+Epoch 033 | train 0.5496 (rec 0.4976, kl 0.0789) | val 0.5630 (rec 0.5131, kl 0.0756) | beta 0.660
+Epoch 034 | train 0.5493 (rec 0.4963, kl 0.0779) | val 0.5597 (rec 0.5079, kl 0.0762) | beta 0.680
+Epoch 035 | train 0.5514 (rec 0.4974, kl 0.0771) | val 0.5684 (rec 0.5120, kl 0.0805) | beta 0.700
+Epoch 036 | train 0.5567 (rec 0.5022, kl 0.0757) | val 0.5696 (rec 0.5157, kl 0.0749) | beta 0.720
+Epoch 037 | train 0.5538 (rec 0.4980, kl 0.0753) | val 0.5660 (rec 0.5112, kl 0.0740) | beta 0.740
+Epoch 038 | train 0.5524 (rec 0.4960, kl 0.0742) | val 0.5643 (rec 0.5095, kl 0.0721) | beta 0.760
+Epoch 039 | train 0.5503 (rec 0.4935, kl 0.0728) | val 0.5631 (rec 0.5073, kl 0.0715) | beta 0.780
+Epoch 040 | train 0.5501 (rec 0.4926, kl 0.0719) | val 0.5627 (rec 0.5065, kl 0.0701) | beta 0.800
+Epoch 041 | train 0.5511 (rec 0.4927, kl 0.0712) | val 0.5642 (rec 0.5069, kl 0.0699) | beta 0.820
+Epoch 042 | train 0.5540 (rec 0.4945, kl 0.0709) | val 0.5655 (rec 0.5069, kl 0.0698) | beta 0.840
+Epoch 043 | train 0.5527 (rec 0.4928, kl 0.0697) | val 0.5641 (rec 0.5059, kl 0.0676) | beta 0.860
+Epoch 044 | train 0.5536 (rec 0.4925, kl 0.0695) | val 0.5690 (rec 0.5093, kl 0.0678) | beta 0.880
+Epoch 045 | train 0.5564 (rec 0.4944, kl 0.0690) | val 0.5709 (rec 0.5104, kl 0.0673) | beta 0.900
+Epoch 046 | train 0.5540 (rec 0.4914, kl 0.0680) | val 0.5701 (rec 0.5098, kl 0.0655) | beta 0.920
+Epoch 047 | train 0.5551 (rec 0.4917, kl 0.0675) | val 0.5696 (rec 0.5090, kl 0.0644) | beta 0.940
+Epoch 048 | train 0.5563 (rec 0.4925, kl 0.0664) | val 0.5691 (rec 0.5072, kl 0.0645) | beta 0.960
+Epoch 049 | train 0.5573 (rec 0.4923, kl 0.0663) | val 0.5708 (rec 0.5070, kl 0.0651) | beta 0.980
+Epoch 050 | train 0.5573 (rec 0.4919, kl 0.0654) | val 0.5716 (rec 0.5080, kl 0.0635) | beta 1.000
+Epoch 051 | train 0.5570 (rec 0.4911, kl 0.0659) | val 0.5721 (rec 0.5084, kl 0.0637) | beta 1.000
+Epoch 052 | train 0.5584 (rec 0.4931, kl 0.0653) | val 0.5734 (rec 0.5090, kl 0.0644) | beta 1.000
+Epoch 053 | train 0.5561 (rec 0.4907, kl 0.0654) | val 0.5845 (rec 0.5197, kl 0.0648) | beta 1.000
+Epoch 054 | train 0.5587 (rec 0.4926, kl 0.0662) | val 0.5728 (rec 0.5079, kl 0.0649) | beta 1.000
+Early stopping after 20 epochs without val improvement.
+Test loss 0.5858 (rec 0.5088, kl 0.0770)
+[Predictor] Epoch 001 | train 6.3575 | val 2.3317 | lr 5.00e-04
+[Predictor] Epoch 002 | train 1.4579 | val 1.2333 | lr 5.00e-04
+[Predictor] Epoch 003 | train 1.1918 | val 1.1120 | lr 5.00e-04
+[Predictor] Epoch 004 | train 1.1086 | val 1.0635 | lr 5.00e-04
+[Predictor] Epoch 005 | train 1.0647 | val 1.0143 | lr 5.00e-04
+[Predictor] Epoch 006 | train 1.0356 | val 0.9872 | lr 5.00e-04
+[Predictor] Epoch 007 | train 1.0145 | val 0.9768 | lr 5.00e-04
+[Predictor] Epoch 008 | train 0.9958 | val 0.9579 | lr 5.00e-04
+[Predictor] Epoch 009 | train 0.9805 | val 0.9325 | lr 5.00e-04
+[Predictor] Epoch 010 | train 0.9732 | val 0.9266 | lr 5.00e-04
+[Predictor] Epoch 011 | train 0.9617 | val 0.9103 | lr 5.00e-04
+[Predictor] Epoch 012 | train 0.9576 | val 0.9169 | lr 5.00e-04
+[Predictor] Epoch 013 | train 0.9508 | val 0.9046 | lr 5.00e-04
+[Predictor] Epoch 014 | train 0.9431 | val 0.9043 | lr 5.00e-04
+[Predictor] Epoch 015 | train 0.9384 | val 0.9052 | lr 5.00e-04
+[Predictor] Epoch 016 | train 0.9304 | val 0.8972 | lr 5.00e-04
+[Predictor] Epoch 017 | train 0.9256 | val 0.8851 | lr 5.00e-04
+[Predictor] Epoch 018 | train 0.9222 | val 0.8824 | lr 5.00e-04
+[Predictor] Epoch 019 | train 0.9181 | val 0.8841 | lr 5.00e-04
+[Predictor] Epoch 020 | train 0.9154 | val 0.8832 | lr 5.00e-04
+[Predictor] Epoch 021 | train 0.9108 | val 0.8869 | lr 5.00e-04
+[Predictor] Epoch 022 | train 0.9091 | val 0.8843 | lr 5.00e-04
+[Predictor] Epoch 023 | train 0.9067 | val 0.8668 | lr 5.00e-04
+[Predictor] Epoch 024 | train 0.9049 | val 0.8659 | lr 5.00e-04
+[Predictor] Epoch 025 | train 0.8997 | val 0.8661 | lr 5.00e-04
+[Predictor] Epoch 026 | train 0.8985 | val 0.8675 | lr 5.00e-04
+[Predictor] Epoch 027 | train 0.8946 | val 0.8503 | lr 5.00e-04
+[Predictor] Epoch 028 | train 0.8921 | val 0.8590 | lr 5.00e-04
+[Predictor] Epoch 029 | train 0.8901 | val 0.8623 | lr 5.00e-04
+[Predictor] Epoch 030 | train 0.8881 | val 0.8472 | lr 5.00e-04
+[Predictor] Epoch 031 | train 0.8869 | val 0.8480 | lr 5.00e-04
+[Predictor] Epoch 032 | train 0.8832 | val 0.8507 | lr 5.00e-04
+[Predictor] Epoch 033 | train 0.8813 | val 0.8477 | lr 5.00e-04
+[Predictor] Epoch 034 | train 0.8780 | val 0.8478 | lr 5.00e-04
+[Predictor] Epoch 035 | train 0.8736 | val 0.8426 | lr 5.00e-04
+[Predictor] Epoch 036 | train 0.8771 | val 0.8444 | lr 5.00e-04
+[Predictor] Epoch 037 | train 0.8745 | val 0.8353 | lr 5.00e-04
+[Predictor] Epoch 038 | train 0.8704 | val 0.8364 | lr 5.00e-04
+[Predictor] Epoch 039 | train 0.8693 | val 0.8334 | lr 5.00e-04
+[Predictor] Epoch 040 | train 0.8681 | val 0.8340 | lr 5.00e-04
+[Predictor] Epoch 041 | train 0.8666 | val 0.8352 | lr 5.00e-04
+[Predictor] Epoch 042 | train 0.8620 | val 0.8327 | lr 5.00e-04
+[Predictor] Epoch 043 | train 0.8666 | val 0.8311 | lr 5.00e-04
+[Predictor] Epoch 044 | train 0.8626 | val 0.8399 | lr 5.00e-04
+[Predictor] Epoch 045 | train 0.8610 | val 0.8321 | lr 5.00e-04
+[Predictor] Epoch 046 | train 0.8590 | val 0.8239 | lr 5.00e-04
+[Predictor] Epoch 047 | train 0.8587 | val 0.8251 | lr 5.00e-04
+[Predictor] Epoch 048 | train 0.8568 | val 0.8328 | lr 5.00e-04
+[Predictor] Epoch 049 | train 0.8537 | val 0.8374 | lr 5.00e-04
+[Predictor] Epoch 050 | train 0.8559 | val 0.8238 | lr 5.00e-04
+[Predictor] Epoch 051 | train 0.8570 | val 0.8168 | lr 5.00e-04
+[Predictor] Epoch 052 | train 0.8515 | val 0.8248 | lr 5.00e-04
+[Predictor] Epoch 053 | train 0.8502 | val 0.8205 | lr 5.00e-04
+[Predictor] Epoch 054 | train 0.8518 | val 0.8135 | lr 5.00e-04
+[Predictor] Epoch 055 | train 0.8472 | val 0.8119 | lr 5.00e-04
+[Predictor] Epoch 056 | train 0.8509 | val 0.8090 | lr 5.00e-04
+[Predictor] Epoch 057 | train 0.8477 | val 0.8123 | lr 5.00e-04
+[Predictor] Epoch 058 | train 0.8473 | val 0.8102 | lr 5.00e-04
+[Predictor] Epoch 059 | train 0.8444 | val 0.8107 | lr 5.00e-04
+[Predictor] Epoch 060 | train 0.8423 | val 0.8137 | lr 5.00e-04
+[Predictor] Epoch 061 | train 0.8425 | val 0.8154 | lr 5.00e-04
+[Predictor] Epoch 062 | train 0.8386 | val 0.8184 | lr 5.00e-04
+[Predictor] Epoch 063 | train 0.8411 | val 0.8107 | lr 5.00e-04
+[Predictor] Epoch 064 | train 0.8386 | val 0.8014 | lr 5.00e-04
+[Predictor] Epoch 065 | train 0.8363 | val 0.8057 | lr 5.00e-04
+[Predictor] Epoch 066 | train 0.8379 | val 0.8012 | lr 5.00e-04
+[Predictor] Epoch 067 | train 0.8379 | val 0.8001 | lr 5.00e-04
+[Predictor] Epoch 068 | train 0.8349 | val 0.8176 | lr 5.00e-04
+[Predictor] Epoch 069 | train 0.8344 | val 0.8017 | lr 5.00e-04
+[Predictor] Epoch 070 | train 0.8349 | val 0.7953 | lr 5.00e-04
+[Predictor] Epoch 071 | train 0.8339 | val 0.8062 | lr 5.00e-04
+[Predictor] Epoch 072 | train 0.8336 | val 0.7949 | lr 5.00e-04
+[Predictor] Epoch 073 | train 0.8339 | val 0.7985 | lr 5.00e-04
+[Predictor] Epoch 074 | train 0.8302 | val 0.7954 | lr 5.00e-04
+[Predictor] Epoch 075 | train 0.8272 | val 0.7970 | lr 5.00e-04
+[Predictor] Epoch 076 | train 0.8329 | val 0.8007 | lr 5.00e-04
+[Predictor] Epoch 077 | train 0.8304 | val 0.7914 | lr 5.00e-04
+[Predictor] Epoch 078 | train 0.8301 | val 0.7965 | lr 5.00e-04
+[Predictor] Epoch 079 | train 0.8295 | val 0.7941 | lr 5.00e-04
+[Predictor] Epoch 080 | train 0.8300 | val 0.8006 | lr 5.00e-04
+[Predictor] Epoch 081 | train 0.8295 | val 0.7952 | lr 5.00e-04
+[Predictor] Epoch 082 | train 0.8286 | val 0.7919 | lr 5.00e-04
+[Predictor] Epoch 083 | train 0.8284 | val 0.7998 | lr 5.00e-04
+[Predictor] Epoch 084 | train 0.8278 | val 0.7934 | lr 5.00e-04
+[Predictor] Epoch 085 | train 0.8295 | val 0.7887 | lr 5.00e-04
+[Predictor] Epoch 086 | train 0.8238 | val 0.7911 | lr 5.00e-04
+[Predictor] Epoch 087 | train 0.8191 | val 0.7914 | lr 5.00e-04
+[Predictor] Epoch 088 | train 0.8196 | val 0.7871 | lr 5.00e-04
+[Predictor] Epoch 089 | train 0.8220 | val 0.7956 | lr 5.00e-04
+[Predictor] Epoch 090 | train 0.8237 | val 0.7845 | lr 5.00e-04
+[Predictor] Epoch 091 | train 0.8205 | val 0.7930 | lr 5.00e-04
+[Predictor] Epoch 092 | train 0.8230 | val 0.7846 | lr 5.00e-04
+[Predictor] Epoch 093 | train 0.8220 | val 0.7852 | lr 5.00e-04
+[Predictor] Epoch 094 | train 0.8243 | val 0.7854 | lr 5.00e-04
+[Predictor] Epoch 095 | train 0.8200 | val 0.7869 | lr 5.00e-04
+[Predictor] Epoch 096 | train 0.8183 | val 0.7828 | lr 5.00e-04
+[Predictor] Epoch 097 | train 0.8169 | val 0.7852 | lr 5.00e-04
+[Predictor] Epoch 098 | train 0.8211 | val 0.7875 | lr 5.00e-04
+[Predictor] Epoch 099 | train 0.8230 | val 0.7906 | lr 5.00e-04
+[Predictor] Epoch 100 | train 0.8167 | val 0.7792 | lr 5.00e-04
+[Predictor] Epoch 101 | train 0.8181 | val 0.7927 | lr 5.00e-04
+[Predictor] Epoch 102 | train 0.8167 | val 0.7927 | lr 5.00e-04
+[Predictor] Epoch 103 | train 0.8177 | val 0.7783 | lr 5.00e-04
+[Predictor] Epoch 104 | train 0.8163 | val 0.7837 | lr 5.00e-04
+[Predictor] Epoch 105 | train 0.8143 | val 0.7780 | lr 5.00e-04
+[Predictor] Epoch 106 | train 0.8126 | val 0.7810 | lr 5.00e-04
+[Predictor] Epoch 107 | train 0.8176 | val 0.7777 | lr 5.00e-04
+[Predictor] Epoch 108 | train 0.8185 | val 0.7973 | lr 5.00e-04
+[Predictor] Epoch 109 | train 0.8129 | val 0.7783 | lr 5.00e-04
+[Predictor] Epoch 110 | train 0.8137 | val 0.7791 | lr 5.00e-04
+[Predictor] Epoch 111 | train 0.8137 | val 0.7759 | lr 5.00e-04
+[Predictor] Epoch 112 | train 0.8145 | val 0.7873 | lr 5.00e-04
+[Predictor] Epoch 113 | train 0.8123 | val 0.7790 | lr 5.00e-04
+[Predictor] Epoch 114 | train 0.8141 | val 0.7786 | lr 5.00e-04
+[Predictor] Epoch 115 | train 0.8124 | val 0.7802 | lr 5.00e-04
+[Predictor] Epoch 116 | train 0.8114 | val 0.7715 | lr 5.00e-04
+[Predictor] Epoch 117 | train 0.8093 | val 0.7854 | lr 5.00e-04
+[Predictor] Epoch 118 | train 0.8099 | val 0.7758 | lr 5.00e-04
+[Predictor] Epoch 119 | train 0.8089 | val 0.7805 | lr 5.00e-04
+[Predictor] Epoch 120 | train 0.8108 | val 0.7740 | lr 5.00e-04
+[Predictor] Epoch 121 | train 0.8119 | val 0.7848 | lr 5.00e-04
+[Predictor] Epoch 122 | train 0.8077 | val 0.7787 | lr 5.00e-04
+[Predictor] Epoch 123 | train 0.8113 | val 0.7714 | lr 5.00e-04
+[Predictor] Epoch 124 | train 0.8104 | val 0.7702 | lr 5.00e-04
+[Predictor] Epoch 125 | train 0.8106 | val 0.7771 | lr 5.00e-04
+[Predictor] Epoch 126 | train 0.8121 | val 0.7726 | lr 5.00e-04
+[Predictor] Epoch 127 | train 0.8123 | val 0.7724 | lr 5.00e-04
+[Predictor] Epoch 128 | train 0.8070 | val 0.7694 | lr 5.00e-04
+[Predictor] Epoch 129 | train 0.8085 | val 0.7769 | lr 5.00e-04
+[Predictor] Epoch 130 | train 0.8051 | val 0.7695 | lr 5.00e-04
+[Predictor] Epoch 131 | train 0.8049 | val 0.7877 | lr 5.00e-04
+[Predictor] Epoch 132 | train 0.8079 | val 0.7799 | lr 5.00e-04
+[Predictor] Epoch 133 | train 0.8066 | val 0.7712 | lr 5.00e-04
+[Predictor] Epoch 134 | train 0.8073 | val 0.7726 | lr 5.00e-04
+[Predictor] Epoch 135 | train 0.8075 | val 0.7680 | lr 5.00e-04
+[Predictor] Epoch 136 | train 0.8026 | val 0.7716 | lr 5.00e-04
+[Predictor] Epoch 137 | train 0.8034 | val 0.7692 | lr 5.00e-04
+[Predictor] Epoch 138 | train 0.8061 | val 0.7675 | lr 5.00e-04
+[Predictor] Epoch 139 | train 0.8023 | val 0.7779 | lr 5.00e-04
+[Predictor] Epoch 140 | train 0.8068 | val 0.7738 | lr 5.00e-04
+[Predictor] Epoch 141 | train 0.8053 | val 0.7704 | lr 5.00e-04
+[Predictor] Epoch 142 | train 0.8061 | val 0.7742 | lr 5.00e-04
+[Predictor] Epoch 143 | train 0.8061 | val 0.7752 | lr 5.00e-04
+[Predictor] Epoch 144 | train 0.8048 | val 0.7661 | lr 5.00e-04
+[Predictor] Epoch 145 | train 0.8028 | val 0.7842 | lr 5.00e-04
+[Predictor] Epoch 146 | train 0.8006 | val 0.7687 | lr 5.00e-04
+[Predictor] Epoch 147 | train 0.8076 | val 0.7739 | lr 5.00e-04
+[Predictor] Epoch 148 | train 0.8025 | val 0.7675 | lr 5.00e-04
+[Predictor] Epoch 149 | train 0.8037 | val 0.7760 | lr 5.00e-04
+[Predictor] Epoch 150 | train 0.8041 | val 0.7713 | lr 5.00e-04
+[Predictor] Epoch 151 | train 0.8024 | val 0.7695 | lr 5.00e-04
+[Predictor] Epoch 152 | train 0.8064 | val 0.7684 | lr 5.00e-04
+[Predictor] Epoch 153 | train 0.8020 | val 0.7641 | lr 5.00e-04
+[Predictor] Epoch 154 | train 0.8006 | val 0.7724 | lr 5.00e-04
+[Predictor] Epoch 155 | train 0.8037 | val 0.7648 | lr 5.00e-04
+[Predictor] Epoch 156 | train 0.7994 | val 0.7655 | lr 5.00e-04
+[Predictor] Epoch 157 | train 0.8023 | val 0.7691 | lr 5.00e-04
+[Predictor] Epoch 158 | train 0.8004 | val 0.7668 | lr 5.00e-04
+[Predictor] Epoch 159 | train 0.8005 | val 0.7642 | lr 5.00e-04
+[Predictor] Epoch 160 | train 0.8007 | val 0.7731 | lr 5.00e-04
+[Predictor] Epoch 161 | train 0.8017 | val 0.7667 | lr 5.00e-04
+[Predictor] Epoch 162 | train 0.8004 | val 0.7668 | lr 5.00e-04
+[Predictor] Epoch 163 | train 0.7995 | val 0.7690 | lr 5.00e-04
+[Predictor] Epoch 164 | train 0.8005 | val 0.7658 | lr 2.50e-04
+[Predictor] Epoch 165 | train 0.7819 | val 0.7532 | lr 2.50e-04
+[Predictor] Epoch 166 | train 0.7812 | val 0.7478 | lr 2.50e-04
+[Predictor] Epoch 167 | train 0.7787 | val 0.7498 | lr 2.50e-04
+[Predictor] Epoch 168 | train 0.7783 | val 0.7494 | lr 2.50e-04
+[Predictor] Epoch 169 | train 0.7758 | val 0.7517 | lr 2.50e-04
+[Predictor] Epoch 170 | train 0.7796 | val 0.7487 | lr 2.50e-04
+[Predictor] Epoch 171 | train 0.7774 | val 0.7483 | lr 2.50e-04
+[Predictor] Epoch 172 | train 0.7763 | val 0.7494 | lr 2.50e-04
+[Predictor] Epoch 173 | train 0.7768 | val 0.7543 | lr 2.50e-04
+[Predictor] Epoch 174 | train 0.7806 | val 0.7484 | lr 2.50e-04
+[Predictor] Epoch 175 | train 0.7757 | val 0.7519 | lr 2.50e-04
+[Predictor] Epoch 176 | train 0.7776 | val 0.7530 | lr 2.50e-04
+[Predictor] Epoch 177 | train 0.7768 | val 0.7463 | lr 2.50e-04
+[Predictor] Epoch 178 | train 0.7850 | val 0.7531 | lr 2.50e-04
+[Predictor] Epoch 179 | train 0.7766 | val 0.7537 | lr 2.50e-04
+[Predictor] Epoch 180 | train 0.7755 | val 0.7488 | lr 2.50e-04
+[Predictor] Epoch 181 | train 0.7764 | val 0.7478 | lr 2.50e-04
+[Predictor] Epoch 182 | train 0.7765 | val 0.7515 | lr 2.50e-04
+[Predictor] Epoch 183 | train 0.7762 | val 0.7457 | lr 2.50e-04
+[Predictor] Epoch 184 | train 0.7741 | val 0.7472 | lr 2.50e-04
+[Predictor] Epoch 185 | train 0.7741 | val 0.7478 | lr 2.50e-04
+[Predictor] Epoch 186 | train 0.7761 | val 0.7554 | lr 2.50e-04
+[Predictor] Epoch 187 | train 0.7755 | val 0.7470 | lr 2.50e-04
+[Predictor] Epoch 188 | train 0.7782 | val 0.7504 | lr 2.50e-04
+[Predictor] Epoch 189 | train 0.7744 | val 0.7526 | lr 2.50e-04
+[Predictor] Epoch 190 | train 0.7772 | val 0.7493 | lr 2.50e-04
+[Predictor] Epoch 191 | train 0.7752 | val 0.7458 | lr 2.50e-04
+[Predictor] Epoch 192 | train 0.7745 | val 0.7500 | lr 2.50e-04
+[Predictor] Epoch 193 | train 0.7753 | val 0.7503 | lr 2.50e-04
+[Predictor] Epoch 194 | train 0.7730 | val 0.7435 | lr 2.50e-04
+[Predictor] Epoch 195 | train 0.7752 | val 0.7470 | lr 2.50e-04
+[Predictor] Epoch 196 | train 0.7728 | val 0.7469 | lr 2.50e-04
+[Predictor] Epoch 197 | train 0.7727 | val 0.7495 | lr 2.50e-04
+[Predictor] Epoch 198 | train 0.7719 | val 0.7467 | lr 2.50e-04
+[Predictor] Epoch 199 | train 0.7740 | val 0.7469 | lr 2.50e-04
+[Predictor] Epoch 200 | train 0.7737 | val 0.7490 | lr 2.50e-04
+Predictor MSE | train 0.7090 | val 0.7435 | test 0.7378
+Isoform correlation: mean Pearson 0.5424, median 0.5586 over 161990/161990 isoforms
