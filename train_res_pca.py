@@ -58,7 +58,7 @@ def parse_args():
     )
     parser.add_argument("--epochs", type=int, default=250)
     parser.add_argument("--batch-size", type=int, default=64)
-    parser.add_argument("--lr", type=float, default=2e-4)
+    parser.add_argument("--lr", type=float, default=5e-4)
     parser.add_argument("--weight-decay", type=float, default=1e-5)
     parser.add_argument("--dropout", type=float, default=0.2)
     parser.add_argument("--hidden1", type=int, default=1536)
@@ -68,7 +68,7 @@ def parse_args():
     parser.add_argument(
         "--pca-components",
         type=int,
-        default=100,
+        default=512,
         help="Number of PCA components to keep for gene inputs before training.",
     )
     parser.add_argument(

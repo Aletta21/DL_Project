@@ -1,0 +1,5 @@
+Loaded module: cuda/11.6
+Traceback (most recent call last):
+  File "/zhome/6b/3/223370/projects/DL_Project/train_ridge_latent.py", line 3, in <module>
+    from _future_ import annotations
+ModuleNotFoundError: No module named '_future_'

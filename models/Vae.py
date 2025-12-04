@@ -52,11 +52,8 @@ class VAE(nn.Module):
         return recon, mu, logvar
 
 def vae_loss(recon, x, mu, logvar, beta=1.0):
-    # Reconstruction loss (MSE per dati continui)
+    """Return total, reconstruction, and KL losses."""
     recon_loss = nn.MSELoss()(recon, x)
-    
-    
-    kl_loss = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-    kl_loss = kl_loss / x.size(0)  
-    
-    return recon_loss + beta * kl_loss
+    kl_loss = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp()) / x.size(0)
+    total = recon_loss + beta * kl_loss
+    return total, recon_loss, kl_loss

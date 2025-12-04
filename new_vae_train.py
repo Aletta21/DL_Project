@@ -51,15 +51,15 @@ def parse_args():
         default=Path("isoform_model_vae"),
         help="Directory to store model + summaries.",
     )
-    p.add_argument("--epochs", type=int, default=100)
+    p.add_argument("--epochs", type=int, default=200)
     p.add_argument("--batch-size", type=int, default=128)
     p.add_argument("--latent", type=int, default=256)
     p.add_argument("--hidden", type=int, default=1024)
-    p.add_argument("--lr", type=float, default=7e-4)
+    p.add_argument("--lr", type=float, default=1e-3)
     p.add_argument("--weight-decay", type=float, default=1e-5)
-    p.add_argument("--beta", type=float, default=1.0, help="KL weight (beta-VAE).")
-    p.add_argument("--beta-warmup", type=int, default=50, help="Epochs to ramp beta 0->beta.")
-    p.add_argument("--patience", type=int, default=20)
+    p.add_argument("--beta", type=float, default=0.5, help="KL weight (beta-VAE).")
+    p.add_argument("--beta-warmup", type=int, default=20, help="Epochs to ramp beta 0->beta.")
+    p.add_argument("--patience", type=int, default=30)
     p.add_argument("--grad-clip", type=float, default=5.0)
     # Predictor (latent -> isoforms)
     p.add_argument("--pred-epochs", type=int, default=200)
@@ -286,6 +286,13 @@ def main():
     Z_train = encode_loader(make_loader(X_train, args.pred_batch, shuffle=False))
     Z_val = encode_loader(make_loader(X_val, args.pred_batch, shuffle=False))
     Z_test = encode_loader(make_loader(X_test, args.pred_batch, shuffle=False))
+
+    # Standardize latents before feeding the predictor
+    z_mean = Z_train.mean(axis=0, keepdims=True)
+    z_std = Z_train.std(axis=0, keepdims=True) + 1e-6
+    Z_train = (Z_train - z_mean) / z_std
+    Z_val = (Z_val - z_mean) / z_std
+    Z_test = (Z_test - z_mean) / z_std
 
     # Train predictor on latents -> isoforms
     predictor = IsoformPredictor(

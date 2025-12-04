@@ -28,13 +28,15 @@ nvidia-smi || true
 # Train VAE + residual predictor on latents
 python -u train_vae_res.py \
   --whole-dataset \
-  --epochs 150 \
+  --epochs 200 \
   --batch-size 128 \
-  --latent 300 \
+  --latent 256 \
   --hidden 1024 \
-  --beta 1.0 \
-  --beta-warmup 50 \
-  --patience 20 \
+  --lr 1e-3 \
+  --weight-decay 1e-5 \
+  --beta 0.5 \
+  --beta-warmup 20 \
+  --patience 30 \
   --grad-clip 5.0 \
   --pred-epochs 200 \
   --pred-batch 128 \

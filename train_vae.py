@@ -57,6 +57,7 @@ def make_loader(X: np.ndarray, batch: int, shuffle: bool) -> DataLoader:
 
 
 def vae_loss(recon_x: torch.Tensor, x: torch.Tensor, mu: torch.Tensor, logvar: torch.Tensor, beta: float):
+    logvar = torch.clamp(logvar, min=-10.0, max=10.0)
     recon = nn.functional.mse_loss(recon_x, x, reduction="mean")
     kl = -0.5 * torch.mean(1 + logvar - mu.pow(2) - logvar.exp())
     return recon + beta * kl, recon, kl
@@ -136,7 +137,7 @@ def train_vae(
         model.load_state_dict(best)
 
 
-def make_split_indices(n: int, train_n: int, val_n: int, test_n: int, seed: int = 42):
+def make_split_indices(n: int, train_n: int, val_n: int, test_n: int, seed: int | None = None):
     rng = np.random.default_rng(seed)
     total_needed = train_n + val_n + test_n
     if total_needed > n:
@@ -176,7 +177,7 @@ def main():
     else:
         train_n, val_n, test_n = args.train_n, args.val_n, args.test_n
 
-    train_idx, val_idx, test_idx = make_split_indices(X.shape[0], train_n, val_n, test_n, seed=42)
+    train_idx, val_idx, test_idx = make_split_indices(X.shape[0], train_n, val_n, test_n)
     X_train, X_val, X_test = X[train_idx], X[val_idx], X[test_idx]
 
     vae = VAE(input_dim=X.shape[1], latent_dim=args.latent, intermediate_dim=args.hidden).to(device)

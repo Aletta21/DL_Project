@@ -48,7 +48,6 @@ def parse_args():
         default=DEFAULT_ISOFORM_H5AD,
         help="Path to isoform-level AnnData file.",
     )
-    parser.add_argument("--pca_components", type=int, default=100, help="Number of PCA components to use for input data.")
     parser.add_argument("--train-n", type=int, default=1000, help="Number of samples for training split.")
     parser.add_argument("--val-n", type=int, default=700, help="Number of samples for validation split.")
     parser.add_argument("--test-n", type=int, default=300, help="Number of samples for test split.")
@@ -68,7 +67,7 @@ def parse_args():
     parser.add_argument(
         "--pca-components",
         type=int,
-        default=100,
+        default=512,
         help="Number of PCA components to keep for gene inputs before training.",
     )
     parser.add_argument(

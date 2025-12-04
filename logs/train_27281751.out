@@ -1,0 +1,109 @@
+Running on host: n-62-20-10
+Thu Dec  4 16:50:38 2025       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 580.105.08             Driver Version: 580.105.08     CUDA Version: 13.0     |
++-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  Tesla V100-SXM2-32GB           On  |   00000000:15:00.0 Off |                    0 |
+| N/A   40C    P0             69W /  300W |       0MiB /  32768MiB |      0%   E. Process |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+torch version: 2.8.0+cu128
+cuda available: True device count: 1
+current device: 0 name: Tesla V100-SXM2-32GB
+Loading AnnData files...
+Data loaded.
+Filtered zero-expression features: genes kept 45244/45263, isoforms kept 161990/162009
+Using whole dataset: train 9941, val 6958, test 2983
+Applying PCA with 100 components...
+PCA complete: (9941, 100)
+Explained variance: 0.6084 (60.84%)
+Using PCA-transformed inputs: 100 components (explained variance 0.6084, 60.84%)
+Epoch 001 | train 7.9818 | val 3.3186 | lr 2.00e-04
+Epoch 002 | train 2.0820 | val 1.4669 | lr 2.00e-04
+Epoch 003 | train 1.3658 | val 1.2172 | lr 2.00e-04
+Epoch 004 | train 1.2490 | val 1.1443 | lr 2.00e-04
+Epoch 005 | train 1.1839 | val 1.0699 | lr 2.00e-04
+Epoch 006 | train 1.1314 | val 1.0355 | lr 2.00e-04
+Epoch 007 | train 1.0919 | val 0.9981 | lr 2.00e-04
+Epoch 008 | train 1.0610 | val 0.9764 | lr 2.00e-04
+Epoch 009 | train 1.0281 | val 0.9338 | lr 2.00e-04
+Epoch 010 | train 1.0052 | val 0.9116 | lr 2.00e-04
+Epoch 011 | train 0.9821 | val 0.8957 | lr 2.00e-04
+Epoch 012 | train 0.9623 | val 0.8704 | lr 2.00e-04
+Epoch 013 | train 0.9420 | val 0.8529 | lr 2.00e-04
+Epoch 014 | train 0.9261 | val 0.8378 | lr 2.00e-04
+Epoch 015 | train 0.9106 | val 0.8252 | lr 2.00e-04
+Epoch 016 | train 0.9011 | val 0.8163 | lr 2.00e-04
+Epoch 017 | train 0.8884 | val 0.8092 | lr 2.00e-04
+Epoch 018 | train 0.8815 | val 0.7954 | lr 2.00e-04
+Epoch 019 | train 0.8755 | val 0.7953 | lr 2.00e-04
+Epoch 020 | train 0.8656 | val 0.7877 | lr 2.00e-04
+Epoch 021 | train 0.8572 | val 0.7805 | lr 2.00e-04
+Epoch 022 | train 0.8529 | val 0.7694 | lr 2.00e-04
+Epoch 023 | train 0.8498 | val 0.7730 | lr 2.00e-04
+Epoch 024 | train 0.8435 | val 0.7610 | lr 2.00e-04
+Epoch 025 | train 0.8390 | val 0.7612 | lr 2.00e-04
+Epoch 026 | train 0.8327 | val 0.7526 | lr 2.00e-04
+Epoch 027 | train 0.8301 | val 0.7511 | lr 2.00e-04
+Epoch 028 | train 0.8266 | val 0.7419 | lr 2.00e-04
+Epoch 029 | train 0.8232 | val 0.7404 | lr 2.00e-04
+Epoch 030 | train 0.8189 | val 0.7460 | lr 2.00e-04
+Epoch 031 | train 0.8151 | val 0.7371 | lr 2.00e-04
+Epoch 032 | train 0.8142 | val 0.7335 | lr 2.00e-04
+Epoch 033 | train 0.8094 | val 0.7310 | lr 2.00e-04
+Epoch 034 | train 0.8063 | val 0.7327 | lr 2.00e-04
+Epoch 035 | train 0.8046 | val 0.7282 | lr 2.00e-04
+Epoch 036 | train 0.8033 | val 0.7232 | lr 2.00e-04
+Epoch 037 | train 0.7999 | val 0.7250 | lr 2.00e-04
+Epoch 038 | train 0.7989 | val 0.7176 | lr 2.00e-04
+Epoch 039 | train 0.7960 | val 0.7203 | lr 2.00e-04
+Epoch 040 | train 0.7947 | val 0.7129 | lr 2.00e-04
+Epoch 041 | train 0.7941 | val 0.7128 | lr 2.00e-04
+Epoch 042 | train 0.7906 | val 0.7126 | lr 2.00e-04
+Epoch 043 | train 0.7877 | val 0.7082 | lr 2.00e-04
+Epoch 044 | train 0.7862 | val 0.7043 | lr 2.00e-04
+Epoch 045 | train 0.7855 | val 0.7011 | lr 2.00e-04
+Epoch 046 | train 0.7810 | val 0.7009 | lr 2.00e-04
+Epoch 047 | train 0.7813 | val 0.7036 | lr 2.00e-04
+Epoch 048 | train 0.7796 | val 0.7011 | lr 2.00e-04
+Epoch 049 | train 0.7802 | val 0.6937 | lr 2.00e-04
+Epoch 050 | train 0.7803 | val 0.6932 | lr 2.00e-04
+Epoch 051 | train 0.7784 | val 0.6965 | lr 2.00e-04
+Epoch 052 | train 0.7789 | val 0.6992 | lr 2.00e-04
+Epoch 053 | train 0.7745 | val 0.7006 | lr 2.00e-04
+Epoch 054 | train 0.7741 | val 0.6923 | lr 2.00e-04
+Epoch 055 | train 0.7722 | val 0.6936 | lr 2.00e-04
+Epoch 056 | train 0.7728 | val 0.6892 | lr 2.00e-04
+Epoch 057 | train 0.7710 | val 0.6938 | lr 2.00e-04
+Epoch 058 | train 0.7681 | val 0.6861 | lr 2.00e-04
+Epoch 059 | train 0.7677 | val 0.6880 | lr 2.00e-04
+Epoch 060 | train 0.7687 | val 0.6877 | lr 2.00e-04
+Epoch 061 | train 0.7681 | val 0.6881 | lr 2.00e-04
+Epoch 062 | train 0.7661 | val 0.6854 | lr 2.00e-04
+Epoch 063 | train 0.7654 | val 0.6815 | lr 2.00e-04
+Epoch 064 | train 0.7631 | val 0.6799 | lr 2.00e-04
+Epoch 065 | train 0.7614 | val 0.6802 | lr 2.00e-04
+Epoch 066 | train 0.7628 | val 0.6757 | lr 2.00e-04
+Epoch 067 | train 0.7625 | val 0.6778 | lr 2.00e-04
+Epoch 068 | train 0.7598 | val 0.6760 | lr 2.00e-04
+Epoch 069 | train 0.7613 | val 0.6756 | lr 2.00e-04
+Epoch 070 | train 0.7598 | val 0.6786 | lr 2.00e-04
+Epoch 071 | train 0.7620 | val 0.6767 | lr 2.00e-04
+Epoch 072 | train 0.7601 | val 0.6777 | lr 2.00e-04
+Epoch 073 | train 0.7590 | val 0.6735 | lr 2.00e-04
+Epoch 074 | train 0.7571 | val 0.6725 | lr 2.00e-04
+Epoch 075 | train 0.7567 | val 0.6751 | lr 2.00e-04
+Epoch 076 | train 0.7594 | val 0.6687 | lr 2.00e-04
+Epoch 077 | train 0.7574 | val 0.6774 | lr 2.00e-04
