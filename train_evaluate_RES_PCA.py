@@ -65,7 +65,7 @@ def parse_args():
     parser.add_argument(
         "--pca-components",
         type=int,
-        default=512,
+        default=128,
         help="Number of PCA components to keep for gene inputs before training.",
     )
     parser.add_argument(

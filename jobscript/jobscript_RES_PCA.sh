@@ -35,4 +35,4 @@ if torch.cuda.is_available():
 PY
 
 # Run training on full dataset (50/35/15 split)
-python -u train_evaluate_RES_PCA.py --whole-dataset --epochs 300 --batch-size 64
+python -u train_evaluate_RES_PCA.py --whole-dataset --epochs 300 --batch-size 64 --pca-components 128

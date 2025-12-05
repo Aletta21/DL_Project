@@ -34,9 +34,36 @@ def normalize_inputs(X: np.ndarray) -> np.ndarray:
     return (X - mean) / std
 
 
+def counts_to_proportions(matrix: np.ndarray, axis: int = 1, eps: float = 1e-8) -> np.ndarray:
+    """
+    Convert counts to per-row proportions (summing to 1 along the chosen axis).
+
+    If a row/column sum is zero, it is replaced with 1 to avoid division by zero,
+    yielding all-zero proportions for that slice.
+    """
+    matrix = matrix.astype(np.float32, copy=False)
+    sums = matrix.sum(axis=axis, keepdims=True)
+    safe_sums = np.where(sums > 0, sums, 1.0)
+    return matrix / safe_sums
+
 def prepare_targets(Y: np.ndarray) -> np.ndarray:
     """Log-transform isoform counts so the network predicts log counts."""
     return np.log1p(Y)
+
+def summarise_gene_isoforms(
+    pred_counts: np.ndarray,
+    true_counts: np.ndarray,
+    transcript_gene_idx: np.ndarray,
+    gene_names: Sequence[str],
+    transcript_names: Sequence[str],
+    top_k: int = 3,
+):
+    """Return a dataframe summarising the top predicted isoforms per gene."""
+    import pandas as pd
+
+    rows = []
+    avg_preds = pred_counts.mean(axis=0)
+    avg_true = true_counts.mean(axis=0)
 
 
 def filter_silent_genes_isoforms(
@@ -107,6 +134,44 @@ def build_transcript_gene_index(
             continue
         transcript_gene_idx[transcript_id] = gene_index[parent_gene]
     return transcript_gene_idx, unmapped
+
+def summarise_isoforms(
+    pred_counts: np.ndarray,
+    true_counts: np.ndarray,
+    transcript_gene_idx: np.ndarray,
+    gene_names: Sequence[str],
+    transcript_names: Sequence[str],
+    correlations: np.ndarray | None = None,
+):
+    """Return a dataframe with per-isoform averages, ranks, and optional correlation."""
+    import pandas as pd
+
+    gene_names = np.asarray(gene_names)
+    avg_pred = pred_counts.mean(axis=0)
+    avg_true = true_counts.mean(axis=0)
+    # Compute descending ranks (1 = highest)
+    rank_pred = np.empty_like(avg_pred, dtype=np.int32)
+    rank_true = np.empty_like(avg_true, dtype=np.int32)
+    rank_pred[np.argsort(-avg_pred)] = np.arange(1, len(avg_pred) + 1, dtype=np.int32)
+    rank_true[np.argsort(-avg_true)] = np.arange(1, len(avg_true) + 1, dtype=np.int32)
+
+    rows = []
+    for iso_idx, iso_name in enumerate(transcript_names):
+        gene_idx = transcript_gene_idx[iso_idx]
+        gene_name = gene_names[gene_idx] if 0 <= gene_idx < len(gene_names) else "unknown"
+        row = {
+            "isoform": iso_name,
+            "gene": gene_name,
+            "avg_pred": float(avg_pred[iso_idx]),
+            "avg_true": float(avg_true[iso_idx]),
+            "rank_pred": int(rank_pred[iso_idx]),
+            "rank_true": int(rank_true[iso_idx]),
+        }
+        if correlations is not None and iso_idx < len(correlations):
+            row["correlation"] = float(correlations[iso_idx]) if not np.isnan(correlations[iso_idx]) else np.nan
+        rows.append(row)
+    return pd.DataFrame(rows).sort_values("avg_pred", ascending=False)
+
 
 
 def aggregate_by_gene(
