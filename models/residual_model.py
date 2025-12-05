@@ -35,8 +35,7 @@ class ResidualBlock(nn.Module):
 
 class ResidualIsoformPredictor(nn.Module):
     """
-    Residual MLP — this is the exact architecture that gives +0.03–0.05
-    Pearson r over the vanilla MLP in 2025 isoform papers.
+    Residual MLP for gene → isoform prediction.
     """
     def __init__(
         self,

@@ -1,7 +1,7 @@
 #!/bin/sh
 ### LSF options for DTU GPU queues
 #BSUB -q gpuv100
-#BSUB -J train_MLP_PCA
+#BSUB -J train_res_PCA
 #BSUB -n 4
 #BSUB -gpu "num=1:mode=exclusive_process"
 #BSUB -W 10:00
@@ -35,4 +35,4 @@ if torch.cuda.is_available():
 PY
 
 # Run training on full dataset (50/35/15 split)
-python -u train_evaluate_MLP_PCA.py --whole-dataset --epochs 300 --batch-size 64
+python -u train_evaluate_RES_PCA.py --whole-dataset --epochs 300 --batch-size 64

@@ -35,4 +35,4 @@ if torch.cuda.is_available():
 PY
 
 # Run residual training on full dataset (50/35/15 split)
-python -u train_residual.py --whole-dataset --epochs 300 --batch-size 64
+python -u train_evaluate_RES.py --whole-dataset --epochs 300 --batch-size 64
